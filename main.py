@@ -2,6 +2,8 @@ from flask import Flask
 from application.models import db
 from config import DevelopmentConfig
 
+
+
 def create_app():
     app = Flask(__name__)
     db.init_app(app)
