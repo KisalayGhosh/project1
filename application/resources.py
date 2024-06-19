@@ -1,4 +1,4 @@
-from flask_restful import Resource, Api, reqparse, marshal_with, fields
+"""from flask_restful import Resource, Api, reqparse, marshal_with, fields
 from .models import StudyResource, db
 
 api = Api(prefix='/api')
@@ -29,4 +29,4 @@ class StudyMaterial(Resource):
         db.session.commit()
         return {"message":"data uploaded"}
 
-api.add_resource(StudyMaterial, '/study_material')
+api.add_resource(StudyMaterial, '/study_material')"""

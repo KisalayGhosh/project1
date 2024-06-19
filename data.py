@@ -3,14 +3,14 @@ from application.models import db, Role
 
 with app.app_context():
     db.create_all()
-    admin= Role(role_id='admin', role_name='Admin', role_description='Admin description')
+    librarian= Role(role_id=1, role_name='librarian')
+    db.session.add(librarian)
+    
+    admin=Role(role_id=2, role_name='admin')
     db.session.add(admin)
     
-    stud=Role(role_id='stud', role_name='Student', role_description='Student description')
-    db.session.add(stud)
-    
-    inst= Role(role_id='inst', role_name='Instructor', role_description='Instructor description')
-    db.session.add(inst)
+    user= Role(role_id=3, role_name='user')
+    db.session.add(user)
     try:
         db.session.commit()
     except:
