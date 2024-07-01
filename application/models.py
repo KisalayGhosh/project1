@@ -33,7 +33,7 @@ class Ebook(db.Model):
     title = db.Column(db.String(128), nullable=False)
     content = db.Column(db.Text, nullable=False)
     author = db.Column(db.String(64), nullable=False)
-    section_id = db.Column(db.Integer, db.ForeignKey('section.section_id'), nullable=False)  
+    #section_id = db.Column(db.Integer, db.ForeignKey('section.section_id'), nullable=False)  
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

@@ -1,32 +1,32 @@
-"""from flask_restful import Resource, Api, reqparse, marshal_with, fields
-from .models import StudyResource, db
+from flask_restful import Resource, Api, reqparse, marshal_with, fields
+from .models import Ebook, db
 
 api = Api(prefix='/api')
 
 parser = reqparse.RequestParser()
-parser.add_argument('topic', type=str, help='decription cannot be converted to string ',required=True)
-parser.add_argument('description', type=str, help='Description cannot be converted to string ', required=True)
-parser.add_argument('resource_link', type=str, help='resource_link cannot be converted to string ', required=True)
+parser.add_argument('title', type=str, help='decription cannot be converted to string ',required=True)
+parser.add_argument('content', type=str, help='Description cannot be converted to string ', required=True)
+parser.add_argument('author', type=str, help='resource_link cannot be converted to string ', required=True)
 
-study_material_fields = {
-    'id':fields.Integer,
-    'topic': fields.String,
-    'description': fields.String,
-    'resource_link': fields.String
+ebook_fields = {
+    'ebook_id':fields.Integer,
+    'title': fields.String,
+    'content': fields.String,
+    'author': fields.String
 }
 
 
-class StudyMaterial(Resource):
-    @marshal_with(study_material_fields)
+class EbookMaterial(Resource):
+    @marshal_with(ebook_fields)
     def get(self):
-        all_study_material=StudyResource.query.all()
-        return all_study_material
+        ebook_material=Ebook.query.all()
+        return ebook_material
     
     def post(self):
         args = parser.parse_args()
-        study_resource=StudyResource(**args)
-        db.session.add(study_resource)
+        ebook_resource=Ebook(**args)
+        db.session.add(ebook_resource)
         db.session.commit()
         return {"message":"data uploaded"}
 
-api.add_resource(StudyMaterial, '/study_material')"""
+api.add_resource(EbookMaterial, '/ebookinfo')
