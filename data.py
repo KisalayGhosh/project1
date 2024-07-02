@@ -1,23 +1,23 @@
 from main import app, datastore
 from application.models import db, Role
+from flask_security import hash_password
+from werkzeug.security import generate_password_hash
 
 with app.app_context():
     db.create_all()
-    """librarian= Role(role_id=1, role_name='librarian')
-    db.session.add(librarian)
-    
-    admin=Role(role_id=2, role_name='admin')
-    db.session.add(admin)
-    
-    user= Role(role_id=3, role_name='user')
-    db.session.add(user)
-    try:
-        db.session.commit()
-    except:
-        pass    
-    
-    """
-    datastore.find_or_create_role(role_name="kisalay", description="User is a admin")
+    datastore.find_or_create_role(name="user", description="User is an admin")
+    datastore.find_or_create_role(name="admin", description="User is an Admin")
+    datastore.find_or_create_role(name="librarian", description="User is a librarian")
     db.session.commit()
-    if not datastore.find_user(email="kisalay.ghsh20027@gmail.com"):
-        datastore.create_user()
+    if not datastore.find_user(email="admin@email.com"):
+        datastore.create_user(
+            email="admin@email.com", password=generate_password_hash("admin"), roles=["admin"])
+    if not datastore.find_user(email="inst1@email.com"):
+        datastore.create_user(
+            email="librarian@email.com", password=generate_password_hash("librarian"), roles=["librarian"])
+    if not datastore.find_user(email="stud1@email.com"):
+        datastore.create_user(
+            email="user@email.com", password=generate_password_hash("user"), roles=["user"], active=False)
+
+
+    db.session.commit()

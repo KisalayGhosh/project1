@@ -4,23 +4,29 @@ from datetime import datetime
 
 db = SQLAlchemy()
 
-class Role(db.Model, RoleMixin):
-    role_id = db.Column(db.Integer, primary_key=True)
-    role_name = db.Column(db.String(64), unique=True, nullable=False)
-
-    # Define back reference to User model
-    users = db.relationship('User', backref='role')
+class RolesUsers(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    user_id = db.Column('user_id', db.Integer(), db.ForeignKey('user.id'))
+    role_id = db.Column('role_id', db.Integer(), db.ForeignKey('role.id'))
 
 class User(db.Model, UserMixin):
-    user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
-    user_active_status = db.Column(db.Boolean())
-    fs_uniquifier = db.Column(db.String(1000), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    role_id = db.Column(db.Integer, db.ForeignKey('role.role_id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, unique=False)
+    email = db.Column(db.String, unique=True)
+    password = db.Column(db.String(255))
+    active = db.Column(db.Boolean())
+    fs_uniquifier = db.Column(db.String(255), unique=True, nullable=False)
+    
+    ebook_resource = db.relationship('Ebook', backref='user', lazy='dynamic')
+
+    roles = db.relationship('Role', secondary='roles_users',
+                         backref=db.backref('users', lazy='dynamic'))
+
+    
+class Role(db.Model, RoleMixin):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(255))
 
 class Section(db.Model):
     section_id = db.Column(db.Integer, primary_key=True)
@@ -34,13 +40,14 @@ class Ebook(db.Model):
     title = db.Column(db.String(128), nullable=False)
     content = db.Column(db.Text, nullable=False)
     author = db.Column(db.String(64), nullable=False)
-    #section_id = db.Column(db.Integer, db.ForeignKey('section.section_id'), nullable=False)  
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) 
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class Request(db.Model):
     request_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     ebook_id = db.Column(db.Integer, db.ForeignKey('ebook.ebook_id'), nullable=False)
     request_date = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(64), nullable=False)  
@@ -49,7 +56,7 @@ class Request(db.Model):
 
 class Feedback(db.Model):
     feedback_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     ebook_id = db.Column(db.Integer, db.ForeignKey('ebook.ebook_id'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.Text)
@@ -57,7 +64,7 @@ class Feedback(db.Model):
 
 class IssuedEbook(db.Model):
     issue_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     ebook_id = db.Column(db.Integer, db.ForeignKey('ebook.ebook_id'), nullable=False)
     issue_date = db.Column(db.DateTime, default=datetime.utcnow)
     return_date = db.Column(db.DateTime)
