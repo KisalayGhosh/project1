@@ -1,9 +1,9 @@
-from main import app
+from main import app, datastore
 from application.models import db, Role
 
 with app.app_context():
     db.create_all()
-    librarian= Role(role_id=1, role_name='librarian')
+    """librarian= Role(role_id=1, role_name='librarian')
     db.session.add(librarian)
     
     admin=Role(role_id=2, role_name='admin')
@@ -16,4 +16,8 @@ with app.app_context():
     except:
         pass    
     
-    
+    """
+    datastore.find_or_create_role(role_name="kisalay", description="User is a admin")
+    db.session.commit()
+    if not datastore.find_user(email="kisalay.ghsh20027@gmail.com"):
+        datastore.create_user()

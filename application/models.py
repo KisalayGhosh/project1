@@ -1,16 +1,17 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_security import UserMixin, RoleMixin
 from datetime import datetime
 
 db = SQLAlchemy()
 
-class Role(db.Model):
+class Role(db.Model, RoleMixin):
     role_id = db.Column(db.Integer, primary_key=True)
     role_name = db.Column(db.String(64), unique=True, nullable=False)
 
     # Define back reference to User model
     users = db.relationship('User', backref='role')
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
