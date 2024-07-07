@@ -79,7 +79,7 @@ class SectionResource(Resource):
         return '', 204
 
 
-api.add_resource(SectionResource, '/api/sections/<int:section_id>', '/api/sections')
+api.add_resource(SectionResource, '/sections/<int:section_id>', '/sections')
 
 #########################################################################################
 ###############################################for request#########################################
@@ -132,7 +132,7 @@ class RequestResource(Resource):
         return '', 204
 
 
-api.add_resource(RequestResource, '/api/requests/<int:request_id>', '/api/requests')
+api.add_resource(RequestResource, '/requests/<int:request_id>', '/requests')
 
 
 ###########################################################################################
@@ -187,7 +187,7 @@ class FeedbackResource(Resource):
         return '', 204
 
 
-api.add_resource(FeedbackResource, '/api/feedback/<int:feedback_id>', '/api/feedback')
+api.add_resource(FeedbackResource, '/feedback/<int:feedback_id>', '/feedback')
 
 
 ##########################################################################
@@ -195,10 +195,20 @@ api.add_resource(FeedbackResource, '/api/feedback/<int:feedback_id>', '/api/feed
 ##################################### for issued e book####################################
 ######################################################################
 
+
 issued_ebook_parser = reqparse.RequestParser()
 issued_ebook_parser.add_argument('user_id', type=int, help='ID of the user', required=True)
 issued_ebook_parser.add_argument('ebook_id', type=int, help='ID of the ebook', required=True)
 issued_ebook_parser.add_argument('return_date', type=str, help='Return date of the ebook')
+
+
+def parse_return_date(value, name):
+    try:
+        return datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
+    except ValueError:
+        raise ValueError(f"Invalid {name} value: {value}. Expected format: YYYY-MM-DDTHH:MM:SS")
+
+issued_ebook_parser.replace_argument('return_date', type=parse_return_date, help='Return date of the ebook in format YYYY-MM-DDTHH:MM:SS')
 
 issued_ebook_fields = {
     'id': fields.Integer,
@@ -220,7 +230,13 @@ class IssuedEbookResource(Resource):
     @marshal_with(issued_ebook_fields)
     def post(self):
         args = issued_ebook_parser.parse_args()
-        issued_ebook = IssuedEbook(**args)
+        issued_ebook = IssuedEbook(
+            user_id=args['user_id'],
+            ebook_id=args['ebook_id'],
+            return_date=args['return_date'],
+            issue_date=datetime.utcnow(),
+            status='Issued'
+        )
         db.session.add(issued_ebook)
         db.session.commit()
         return issued_ebook, 201
@@ -231,7 +247,7 @@ class IssuedEbookResource(Resource):
         args = issued_ebook_parser.parse_args()
         issued_ebook.user_id = args['user_id']
         issued_ebook.ebook_id = args['ebook_id']
-        issued_ebook.return_date = args.get('return_date', issued_ebook.return_date)
+        issued_ebook.return_date = args['return_date']
         issued_ebook.updated_at = datetime.utcnow()
         db.session.commit()
         return issued_ebook
@@ -242,4 +258,4 @@ class IssuedEbookResource(Resource):
         db.session.commit()
         return '', 204
 
-api.add_resource(IssuedEbookResource, '/api/issued_ebooks/<int:issued_ebook_id>', '/api/issued_ebooks')
+api.add_resource(IssuedEbookResource, '/issued_ebooks/<int:issued_ebook_id>', '/issued_ebooks')
