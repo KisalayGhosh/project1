@@ -1,4 +1,7 @@
+import router from "./router.js"
+
 new Vue({
     el: '#app',
-    template: '<div>Hello from Vue</div>'
+    template: `<router-view />`,
+    router,
 })
