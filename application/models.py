@@ -71,3 +71,21 @@ class IssuedEbook(db.Model):
     status = db.Column(db.String(64), nullable=False)  # Consider if this should be a boolean instead
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Token(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(255), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    revoked = db.Column(db.Boolean, default=False)
+
+    def revoke(self):
+        self.revoked = True
+        db.session.commit()
+
+    @classmethod
+    def delete_token(cls, token):
+        token_obj = cls.query.filter_by(token=token).first()
+        if token_obj:
+            db.session.delete(token_obj)
+            db.session.commit()    
