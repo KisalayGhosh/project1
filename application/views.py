@@ -18,7 +18,7 @@ def home():
 def admin():
     return "Hello Admin"
 
-@app.get('/user-login')
+@app.post('/user-login')
 def user_login():
     data = request.get_json()
     email = data.get('email')

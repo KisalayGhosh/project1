@@ -17,7 +17,7 @@ export default {
                                     <label for="password">Password</label>
                                     <input type="password" class="form-control" id="password" v-model="password" required>
                                 </div>
-                                <button type="submit" class="btn btn-primary btn-block">Login</button>
+                                <button type="submit" class="mt-2 btn btn-primary btn-block">Login</button>
                                 <p class="text-danger mt-2" v-if="error">{{ error }}</p>
                             </form>
                         </div>
@@ -35,7 +35,7 @@ export default {
     },
     methods: {
         login() {
-            fetch('http://127.0.0.1:5000/api/user-login', {
+            fetch('http://127.0.0.1:5000/user-login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -51,7 +51,12 @@ export default {
             .then(data => {
                 if (data.token) {
                     localStorage.setItem('token', data.token);
-                    this.$router.push('/admin/dashboard'); 
+                    localStorage.setItem('role', data.role); 
+                    if (data.role === 'admin') {
+                        this.$router.push('/admin/dashboard'); 
+                    } else {
+                        this.$router.push('/'); 
+                    }
                 } else {
                     this.error = data.message || 'Login failed';
                 }
