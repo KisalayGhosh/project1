@@ -20,21 +20,6 @@ const routes=[
 
 ];
 
-const router = new VueRouter({
-    mode: 'history',
-    routes
-});
-
-router.beforeEach((to, from, next) => {
-    if (to.matched.some(record => record.meta.requiresAuth)) {
-        if (!localStorage.getItem('authToken')) {
-            next('/');
-        } else {
-            next();
-        }
-    } else {
-        next();
-    }
-});
-
-export default router;
+export default new VueRouter({
+    routes,
+  })
