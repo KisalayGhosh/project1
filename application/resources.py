@@ -1,5 +1,5 @@
 from flask_restful import Resource, Api, reqparse, marshal_with, fields
-from .models import Ebook, db, Request, Feedback, IssuedEbook, Token
+from .models import Ebook, db, Request, Feedback, IssuedEbook, Token, Section
 from datetime import datetime
 from flask_security.datastore import SQLAlchemyUserDatastore
 
@@ -33,54 +33,61 @@ class EbookMaterial(Resource):
 
 api.add_resource(EbookMaterial, '/ebookinfo')
 
-###########################################################
-###################################### for section  ##########################
-###############################################
+##########################################################
+##################################### for section  ##########################
+##############################################
 
-# section_parser = reqparse.RequestParser()
-# section_parser.add_argument('section_name', type=str, help='Name of the section', required=True)
-# section_parser.add_argument('description', type=str, help='Description of the section')
+section_parser = reqparse.RequestParser()
+section_parser.add_argument('section_name', type=str, help='Name of the section', required=True)
+section_parser.add_argument('description', type=str, help='Description of the section')
 
-# section_fields = {
-#     'id': fields.Integer,
-#     'section_name': fields.String,
-#     'description': fields.String,
-#     'created_at': fields.DateTime(dt_format='iso8601'),
-#     'updated_at': fields.DateTime(dt_format='iso8601')
-# }
+section_fields = {
+    'section_id': fields.Integer,
+    'section_name': fields.String,
+    'description': fields.String,
+    'created_at': fields.DateTime(dt_format='iso8601'),
+    'updated_at': fields.DateTime(dt_format='iso8601')
+}
 
-# class SectionResource(Resource):
-#     @marshal_with(section_fields)
-#     def get(self, section_id):
-#         section = Section.query.get_or_404(section_id)
-#         return section
+class SectionResource(Resource):
+    @marshal_with(section_fields)
+    def get(self, section_id=None):
+        if section_id:
+            section = Section.query.get_or_404(section_id)
+            return section
+        else:
+            sections = Section.query.all()
+            return sections
 
-#     @marshal_with(section_fields)
-#     def post(self):
-#         args = section_parser.parse_args()
-#         section = Section(**args)
-#         db.session.add(section)
-#         db.session.commit()
-#         return section, 201
+    @marshal_with(section_fields)
+    def post(self):
+        args = section_parser.parse_args()
+        section = Section(
+            section_name=args['section_name'],
+            description=args['description'],
+            created_at=datetime.utcnow()
+        )
+        db.session.add(section)
+        db.session.commit()
+        return section, 201
 
-#     @marshal_with(section_fields)
-#     def put(self, section_id):
-#         section = Section.query.get_or_404(section_id)
-#         args = section_parser.parse_args()
-#         section.section_name = args['section_name']
-#         section.description = args.get('description', section.description)
-#         section.updated_at = datetime.utcnow()
-#         db.session.commit()
-#         return section
+    @marshal_with(section_fields)
+    def put(self, section_id):
+        section = Section.query.get_or_404(section_id)
+        args = section_parser.parse_args()
+        section.section_name = args['section_name']
+        section.description = args.get('description', section.description)
+        section.updated_at = datetime.utcnow()
+        db.session.commit()
+        return section
 
-#     def delete(self, section_id):
-#         section = Section.query.get_or_404(section_id)
-#         db.session.delete(section)
-#         db.session.commit()
-#         return '', 204
+    def delete(self, section_id):
+        section = Section.query.get_or_404(section_id)
+        db.session.delete(section)
+        db.session.commit()
+        return '', 204
 
-
-# api.add_resource(SectionResource, '/sections/<int:section_id>', '/sections')
+api.add_resource(SectionResource, '/sections/<int:section_id>', '/sections')
 
 #########################################################################################
 ###############################################for request#########################################
@@ -264,7 +271,7 @@ api.add_resource(IssuedEbookResource, '/issued_ebooks/<int:issued_ebook_id>', '/
 
 
 ###############################################################################
-###############################################################################
+###########################################for logout####################################
 #####################################
 
 # Example of CustomSQLAlchemyUserDatastore in resources.py
