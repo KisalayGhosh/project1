@@ -1,6 +1,6 @@
 from flask import current_app as app, render_template, jsonify, request
 from flask_security import auth_required, roles_required
-from application.models import User, db, Section, Request, Feedback, IssuedEbook
+from application.models import User, db, Section, Request, Feedback, IssuedEbook,Ebook
 from werkzeug.security import check_password_hash
 from application.resources import RequestResource, FeedbackResource, IssuedEbookResource, SectionResource
 from main import datastore
@@ -61,8 +61,8 @@ def get_sections_details():
     return jsonify(section_details)
 
 @app.post('/sections')
-@auth_required("token")
-@roles_required("admin", "librarian")
+# @auth_required("token")
+# @roles_required("admin", "librarian")
 def create_section():
     data = request.get_json()
     section_name = data.get('section_name')
@@ -71,7 +71,11 @@ def create_section():
     if not section_name:
         return jsonify({"message": "Section name is required"}), 400
 
-    new_section = Section(section_name=section_name, description=description, created_at=datetime.utcnow())
+    new_section = Section(
+        section_name=section_name,
+        description=description,
+        created_at=datetime.utcnow()
+    )
     db.session.add(new_section)
     db.session.commit()
 
@@ -87,8 +91,8 @@ def create_section():
     }), 201
 
 @app.put('/sections/<int:section_id>')
-@auth_required("token")
-@roles_required("admin", "librarian")
+# @auth_required("token")
+# @roles_required("admin", "librarian")
 def update_section(section_id):
     data = request.get_json()
     section = Section.query.get(section_id)
@@ -101,8 +105,8 @@ def update_section(section_id):
     return jsonify({"message": "Section not found"}), 404
 
 @app.delete('/sections/<int:section_id>')
-@auth_required("token")
-@roles_required("admin", "librarian")
+# @auth_required("token")
+# @roles_required("admin", "librarian")
 def delete_section(section_id):
     section = Section.query.get(section_id)
     if section:
@@ -119,6 +123,54 @@ def delete_section(section_id):
 def get_sections():
     return SectionResource.get()
 
+
+
+
+@app.post('/sections/<int:section_id>/ebooks')
+# @auth_required("token")
+# @roles_required("admin", "librarian")
+def add_ebook_to_section(section_id):
+    data = request.get_json()
+    title = data.get('title')
+    content = data.get('content')
+    author = data.get('author')
+
+    if not (title and content and author):
+        return jsonify({"message": "Title, content, and author are required"}), 400
+
+    section = Section.query.get(section_id)
+    if not section:
+        return jsonify({"message": "Section not found"}), 404
+
+    admin_user = User.query.filter_by(email='admin@email.com').first()  # Replace with actual admin user retrieval logic
+
+    new_ebook = Ebook(
+        title=title,
+        content=content,
+        author=author,
+        section=section,
+        user=admin_user,
+        created_at=datetime.utcnow()
+    )
+
+    db.session.add(new_ebook)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Ebook added to section successfully",
+        "ebook": {
+            'ebook_id': new_ebook.ebook_id,
+            'title': new_ebook.title,
+            'content': new_ebook.content,
+            'author': new_ebook.author,
+            'section_id': new_ebook.section.section_id,
+            'created_at': new_ebook.created_at
+        }
+    }), 201
+    
+    
+    
+    
 
 
 @app.get('/requests')
@@ -276,6 +328,3 @@ def create_issued_ebook():
             'created_at': new_issued_ebook.created_at
         }
     }), 201
-
-
-
