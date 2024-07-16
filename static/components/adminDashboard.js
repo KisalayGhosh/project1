@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 export default {
   template: `
     <div>
@@ -61,15 +59,18 @@ export default {
     this.fetchSections();
   },
   methods: {
-    fetchSections() {
-      axios.get('/sections-details')
-        .then(response => {
-          this.sections = response.data;
-        })
-        .catch(error => {
-          console.error('Error fetching sections:', error);
-          this.error = 'Failed to load sections.';
-        });
+    async fetchSections() {
+      try {
+        const response = await fetch('/sections-details');
+        if (!response.ok) {
+          throw new Error('Failed to fetch sections.');
+        }
+        const data = await response.json();
+        this.sections = data;
+      } catch (error) {
+        console.error('Error fetching sections:', error);
+        this.error = 'Failed to load sections.';
+      }
     },
     formatDate(dateStr) {
       const date = new Date(dateStr);
@@ -78,58 +79,85 @@ export default {
     toggleAddSectionForm() {
       this.showAddSectionForm = !this.showAddSectionForm;
     },
-    addSection() {
-      axios.post('/sections', this.newSection)
-        .then(response => {
-          this.sections.push(response.data.section);
-          this.newSection.section_name = '';
-          this.newSection.description = '';
-          this.showAddSectionForm = false;
-        })
-        .catch(error => {
-          console.error('Error adding section:', error);
-          this.error = 'Failed to add section.';
+    async addSection() {
+      try {
+        const response = await fetch('/sections', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(this.newSection)
         });
+        if (!response.ok) {
+          throw new Error('Failed to add section.');
+        }
+        const data = await response.json();
+        this.sections.push(data.section);
+        this.newSection.section_name = '';
+        this.newSection.description = '';
+        this.showAddSectionForm = false;
+      } catch (error) {
+        console.error('Error adding section:', error);
+        this.error = 'Failed to add section.';
+      }
     },
-    deleteSection(sectionId) {
-      axios.delete(`/sections/${sectionId}`)
-        .then(response => {
-          this.sections = this.sections.filter(section => section.section_id !== sectionId);
-        })
-        .catch(error => {
-          console.error('Error deleting section:', error);
-          this.error = 'Failed to delete section.';
+    async deleteSection(sectionId) {
+      try {
+        const response = await fetch(`/sections/${sectionId}`, {
+          method: 'DELETE'
         });
+        if (!response.ok) {
+          throw new Error('Failed to delete section.');
+        }
+        this.sections = this.sections.filter(section => section.section_id !== sectionId);
+      } catch (error) {
+        console.error('Error deleting section:', error);
+        this.error = 'Failed to delete section.';
+      }
     },
-    updateSection(sectionId) {
-      const updatedSection = this.sections.find(section => section.section_id === sectionId);
-      axios.put(`/sections/${sectionId}`, updatedSection)
-        .then(response => {
-          console.log('Section updated successfully:', response.data);
-          // Optionally update state or notify user
-        })
-        .catch(error => {
-          console.error('Error updating section:', error);
-          this.error = 'Failed to update section.';
+    async updateSection(sectionId) {
+      try {
+        const updatedSection = this.sections.find(section => section.section_id === sectionId);
+        const response = await fetch(`/sections/${sectionId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updatedSection)
         });
+        if (!response.ok) {
+          throw new Error('Failed to update section.');
+        }
+        console.log('Section updated successfully:', updatedSection);
+        // Optionally update state or notify user
+      } catch (error) {
+        console.error('Error updating section:', error);
+        this.error = 'Failed to update section.';
+      }
     },
-    addEbookToSection(sectionId) {
-      // Example method to add an ebook to a section
-      const newEbook = {
-        title: 'New Ebook Title',
-        content: 'Ebook content here...',
-        author: 'Author Name',
-      };
-      
-      axios.post(`/sections/${sectionId}/ebooks`, newEbook)
-        .then(response => {
-          console.log('Ebook added successfully:', response.data);
-          // Optionally, update state or notify user
-        })
-        .catch(error => {
-          console.error('Error adding ebook:', error);
-          // Handle error response
+    async addEbookToSection(sectionId) {
+      try {
+        const newEbook = {
+          title: 'New Ebook Title',
+          content: 'Ebook content here...',
+          author: 'Author Name',
+        };
+        const response = await fetch(`/sections/${sectionId}/ebooks`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newEbook)
         });
+        if (!response.ok) {
+          throw new Error('Failed to add ebook.');
+        }
+        console.log('Ebook added successfully:', newEbook);
+        // Optionally, update state or notify user
+      } catch (error) {
+        console.error('Error adding ebook:', error);
+        // Handle error response
+      }
     },
   }
 };
