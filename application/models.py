@@ -11,39 +11,45 @@ class RolesUsers(db.Model):
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String, unique=False)
-    email = db.Column(db.String, unique=True)
-    password = db.Column(db.String(255))
-    active = db.Column(db.Boolean())
+    username = db.Column(db.String(128), nullable=False)
+    email = db.Column(db.String(128), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    active = db.Column(db.Boolean(), default=True)
     fs_uniquifier = db.Column(db.String(255), unique=True, nullable=False)
     
+    roles = db.relationship('Role', secondary='roles_users',
+                            backref=db.backref('users', lazy='dynamic'))
+
+    # Define a relationship with Ebook
     ebook_resource = db.relationship('Ebook', backref='user', lazy='dynamic')
 
-    roles = db.relationship('Role', secondary='roles_users',
-                         backref=db.backref('users', lazy='dynamic'))
-
-    
 class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(80), unique=True)
     description = db.Column(db.String(255))
 
+class Ebook(db.Model):
+    ebook_id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text)
+    author = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Define the foreign key relationship with User
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __repr__(self):
+        return f"Ebook('{self.title}', '{self.author}')"
+
 class Section(db.Model):
     section_id = db.Column(db.Integer, primary_key=True)
-    section_name = db.Column(db.String(128), nullable=False)
+    section_name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-class Ebook(db.Model):
-    ebook_id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(128), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    author = db.Column(db.String(64), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) 
-    
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # Define the foreign key relationship with Ebook
+    ebook_id = db.Column(db.Integer, db.ForeignKey('ebook.ebook_id'), nullable=False)
 
 class Request(db.Model):
     request_id = db.Column(db.Integer, primary_key=True)
@@ -72,7 +78,6 @@ class IssuedEbook(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-
 class Token(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String(255), unique=True, nullable=False)
@@ -88,4 +93,4 @@ class Token(db.Model):
         token_obj = cls.query.filter_by(token=token).first()
         if token_obj:
             db.session.delete(token_obj)
-            db.session.commit()    
+            db.session.commit()

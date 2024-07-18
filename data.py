@@ -13,28 +13,23 @@ def create_app():
     app.config.from_object(DevelopmentConfig)
     db.init_app(app)
     api.init_app(app)
-    datastore=SQLAlchemyUserDatastore(db, User, Role)
-    app.security=Security(app, datastore)
-    with app.app_context():
-        import application.views
-        
-    return app, datastore
+    return app
 
-app, datastore =create_app()
+app = create_app()
+
 def populate_data():
     """
     Populate initial data into the database.
     """
     try:
-       
+        # Create all tables based on the models
         db.create_all()
 
-       
+        # Define roles if they don't exist
         admin_role = Role.query.filter_by(name='admin').first()
         librarian_role = Role.query.filter_by(name='librarian').first()
         user_role = Role.query.filter_by(name='user').first()
 
-        
         if not admin_role:
             admin_role = Role(name='admin', description='Administrator role')
             db.session.add(admin_role)
@@ -47,29 +42,34 @@ def populate_data():
 
         db.session.commit()
 
-        
+        # Create a user datastore
         datastore = SQLAlchemyUserDatastore(db, User, Role)
 
+        # Create users if they don't exist
         if not User.query.filter_by(email='admin@email.com').first():
             admin_user = datastore.create_user(
+                username='admin',  # Provide a username here
                 email='admin@email.com',
                 password=generate_password_hash('admin'),
                 roles=[admin_role]
             )
         if not User.query.filter_by(email='librarian@email.com').first():
             librarian_user = datastore.create_user(
+                username='librarian',  # Provide a username here
                 email='librarian@email.com',
                 password=generate_password_hash('librarian'),
                 roles=[librarian_role]
             )
         if not User.query.filter_by(email='user1@email.com').first():
             user1 = datastore.create_user(
+                username='user1',  # Provide a username here
                 email='user1@email.com',
                 password=generate_password_hash('user1'),
                 roles=[user_role]
             )
         if not User.query.filter_by(email='user2@email.com').first():
             user2 = datastore.create_user(
+                username='user2',  # Provide a username here
                 email='user2@email.com',
                 password=generate_password_hash('user2'),
                 roles=[user_role]
@@ -77,28 +77,32 @@ def populate_data():
 
         db.session.commit()
 
-      
-        if not Section.query.filter_by(section_name='Science').first():
-            section1 = Section(section_name='Science', description='Books related to science')
-            db.session.add(section1)
-        if not Section.query.filter_by(section_name='Philosophy').first():
-            section2 = Section(section_name='Philosophy', description='Books related to philosophy')
-            db.session.add(section2)
-
-        db.session.commit()
-
-      
+        # Create ebooks if they don't exist
         admin_user = User.query.filter_by(email='admin@email.com').first()
 
         if not Ebook.query.filter_by(title='Introduction to Physics').first():
             ebook1 = Ebook(title='Introduction to Physics', content='...', author='John Doe', user=admin_user, created_at=datetime.utcnow())
             db.session.add(ebook1)
-            db.session.commit()  
+            db.session.commit()
         if not Ebook.query.filter_by(title='Meditations').first():
             ebook2 = Ebook(title='Meditations', content='...', author='Marcus Aurelius', user=admin_user, created_at=datetime.utcnow())
             db.session.add(ebook2)
-            db.session.commit()  
+            db.session.commit()
 
+        # Create sections if they don't exist, linking them to ebooks
+        if not Section.query.filter_by(section_name='Science').first():
+            # Link the section to an existing ebook
+            ebook1 = Ebook.query.filter_by(title='Introduction to Physics').first()
+            section1 = Section(section_name='Science', description='Books related to science', ebook_id=ebook1.ebook_id)
+            db.session.add(section1)
+
+        if not Section.query.filter_by(section_name='Philosophy').first():
+            # Link the section to an existing ebook
+            ebook2 = Ebook.query.filter_by(title='Meditations').first()
+            section2 = Section(section_name='Philosophy', description='Books related to philosophy', ebook_id=ebook2.ebook_id)
+            db.session.add(section2)
+
+        db.session.commit()
 
     except Exception as e:
         db.session.rollback()
@@ -106,8 +110,6 @@ def populate_data():
     finally:
         db.session.close()
 
-
 if __name__ == '__main__':
     with app.app_context():
-        
         populate_data()
