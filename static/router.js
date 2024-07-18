@@ -8,6 +8,7 @@ import Request from "./components/Request.js";
 import Feedback from "./components/Feedback.js";
 import IssuedEbook from "./components/IssuedEbook.js";
 import AdminDashboard from "./components/adminDashboard.js";
+import AdminRequests from './components/AdminRequests.js';
 
 Vue.use(VueRouter);
 
@@ -18,7 +19,8 @@ const routes = [
     { path: '/requests', component: Request },
     { path: '/feedback', component: Feedback },
     { path: '/issued-ebooks', component: IssuedEbook },
-    { path: '/admin/dashboard', component: AdminDashboard, meta: { requiresAuth: true, role: 'admin' }}
+    { path: '/admin/dashboard', component: AdminDashboard, meta: { requiresAuth: true, role: 'admin' }},
+    { path: '/admin-requests', component: AdminRequests }
 ];
 
 const router = new VueRouter({

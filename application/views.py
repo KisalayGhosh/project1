@@ -173,29 +173,51 @@ def add_ebook_to_section(section_id):
     
 
 
-@app.get('/requests')
-@auth_required("token")
-@roles_required("admin", "librarian", "user")
+@app.route('/requests', methods=['GET'])
+# @auth_required('token')
 def get_requests():
     requests = Request.query.all()
-    request_details = [
-        {
-            'request_id': request.request_id,
+    request_data = []
+    for req in requests:
+        request_data.append({
+            'request_id': req.request_id,
             'user': {
-                'id': request.user.id,
-                'username': request.user.username,
-                'email': request.user.email
+                'id': req.user.id,
+                'email': req.user.email
             },
             'ebook': {
-                'id': request.ebook.ebook_id,
-                'title': request.ebook.title
+                'ebook_id': req.ebook.ebook_id,
+                'title': req.ebook.title,
+                'author': req.ebook.author,
+                'section': {
+                    'section_id': req.ebook.section.section_id,
+                    'section_name': req.ebook.section.section_name
+                }
             },
-            'request_date': request.request_date,
-            'status': request.status
-        }
-        for request in requests
-    ]
-    return jsonify(request_details)
+            'request_date': req.request_date,
+            'status': req.status
+        })
+    return jsonify(request_data)
+
+@app.route('/requests/<int:request_id>/grant', methods=['POST'])
+# @auth_required('token')
+def grant_request(request_id):
+    req = Request.query.get(request_id)
+    if req:
+        req.status = 'granted'
+        db.session.commit()
+        return jsonify({'message': 'Request granted.'}), 200
+    return jsonify({'error': 'Request not found.'}), 404
+
+@app.route('/requests/<int:request_id>/revoke', methods=['POST'])
+# @auth_required('token')
+def revoke_request(request_id):
+    req = Request.query.get(request_id)
+    if req:
+        req.status = 'revoked'
+        db.session.commit()
+        return jsonify({'message': 'Request revoked.'}), 200
+    return jsonify({'error': 'Request not found.'}), 404
 
 
 

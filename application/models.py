@@ -56,9 +56,15 @@ class Request(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     ebook_id = db.Column(db.Integer, db.ForeignKey('ebook.ebook_id'), nullable=False)
     request_date = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(64), nullable=False)  
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    status = db.Column(db.String(20), default='pending')
+
+    # Relationships
+    user = db.relationship('User', back_populates='requests')
+    ebook = db.relationship('Ebook', back_populates='requests')
+
+User.requests = db.relationship('Request', back_populates='user', lazy='dynamic')
+Ebook.requests = db.relationship('Request', back_populates='ebook', lazy='dynamic')
+
 
 class Feedback(db.Model):
     feedback_id = db.Column(db.Integer, primary_key=True)

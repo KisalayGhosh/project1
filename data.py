@@ -18,11 +18,7 @@ def create_app():
 app = create_app()
 
 def populate_data():
-    """
-    Populate initial data into the database.
-    """
     try:
-        # Create all tables based on the models
         db.create_all()
 
         # Define roles if they don't exist
@@ -42,34 +38,33 @@ def populate_data():
 
         db.session.commit()
 
-        # Create a user datastore
         datastore = SQLAlchemyUserDatastore(db, User, Role)
 
         # Create users if they don't exist
         if not User.query.filter_by(email='admin@email.com').first():
             admin_user = datastore.create_user(
-                username='admin',  # Provide a username here
+                username='admin',
                 email='admin@email.com',
                 password=generate_password_hash('admin'),
                 roles=[admin_role]
             )
         if not User.query.filter_by(email='librarian@email.com').first():
             librarian_user = datastore.create_user(
-                username='librarian',  # Provide a username here
+                username='librarian',
                 email='librarian@email.com',
                 password=generate_password_hash('librarian'),
                 roles=[librarian_role]
             )
         if not User.query.filter_by(email='user1@email.com').first():
             user1 = datastore.create_user(
-                username='user1',  # Provide a username here
+                username='user1',
                 email='user1@email.com',
                 password=generate_password_hash('user1'),
                 roles=[user_role]
             )
         if not User.query.filter_by(email='user2@email.com').first():
             user2 = datastore.create_user(
-                username='user2',  # Provide a username here
+                username='user2',
                 email='user2@email.com',
                 password=generate_password_hash('user2'),
                 roles=[user_role]
@@ -91,16 +86,27 @@ def populate_data():
 
         # Create sections if they don't exist, linking them to ebooks
         if not Section.query.filter_by(section_name='Science').first():
-            # Link the section to an existing ebook
             ebook1 = Ebook.query.filter_by(title='Introduction to Physics').first()
             section1 = Section(section_name='Science', description='Books related to science', ebook_id=ebook1.ebook_id)
             db.session.add(section1)
 
         if not Section.query.filter_by(section_name='Philosophy').first():
-            # Link the section to an existing ebook
             ebook2 = Ebook.query.filter_by(title='Meditations').first()
             section2 = Section(section_name='Philosophy', description='Books related to philosophy', ebook_id=ebook2.ebook_id)
             db.session.add(section2)
+
+        db.session.commit()
+
+        # Create requests if they don't exist
+        user1 = User.query.filter_by(email='user1@email.com').first()
+        user2 = User.query.filter_by(email='user2@email.com').first()
+
+        if not Request.query.filter_by(user_id=user1.id, ebook_id=ebook1.ebook_id).first():
+            request1 = Request(user_id=user1.id, ebook_id=ebook1.ebook_id, request_date=datetime.utcnow(), status='pending')
+            db.session.add(request1)
+        if not Request.query.filter_by(user_id=user2.id, ebook_id=ebook2.ebook_id).first():
+            request2 = Request(user_id=user2.id, ebook_id=ebook2.ebook_id, request_date=datetime.utcnow(), status='pending')
+            db.session.add(request2)
 
         db.session.commit()
 
@@ -109,6 +115,7 @@ def populate_data():
         print(f"An error occurred: {e}")
     finally:
         db.session.close()
+
 
 if __name__ == '__main__':
     with app.app_context():
