@@ -14,14 +14,17 @@ export default {
             <li class="nav-item" v-if="isAdmin">
               <router-link class="nav-link" to="/admin/dashboard">Admin Dashboard</router-link>
             </li>
+            <li class="nav-item" v-if="isUser">
+              <router-link class="nav-link" to="/user/dashboard">User Dashboard</router-link>
+            </li>
             <li class="nav-item" v-if="isAdmin">
               <router-link class="nav-link" to="/sections">Sections</router-link>
             </li>
-            <li class="nav-item" v-if="isAuthenticated">
+            <li class="nav-item" v-if="isAdmin">
               <router-link class="nav-link" to="/feedback">Feedback</router-link>
             </li>
-            <li class="nav-item" v-if="isAuthenticated">
-              <router-link class="nav-link" to="/issued-ebooks">Issued E-books</router-link>
+            <li class="nav-item" v-if="isUser">
+              <router-link class="nav-link" to="/available-ebooks">Available E-books</router-link>
             </li>
             <li class="nav-item" v-if="isAdmin">
               <router-link class="nav-link" to="/admin-requests">Admin Requests</router-link>
@@ -37,23 +40,22 @@ export default {
       </div>
     </nav>
   `,
-  data() {
-    return {
-      isAuthenticated: false,
-      isAdmin: false,
-    };
+  computed: {
+    isAuthenticated() {
+      return !!localStorage.getItem('token');
+    },
+    isAdmin() {
+      return localStorage.getItem('role') === 'admin';
+    },
+    isUser() {
+      return localStorage.getItem('role') === 'user';
+    }
   },
   methods: {
     logout() {
       localStorage.removeItem('token');
       localStorage.removeItem('role');
-      this.isAuthenticated = false;
-      this.isAdmin = false;
       this.$router.push('/login');
     }
-  },
-  created() {
-    this.isAuthenticated = !!localStorage.getItem('token');
-    this.isAdmin = localStorage.getItem('role') === 'admin';
   }
 };
