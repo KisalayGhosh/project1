@@ -5,7 +5,7 @@ import Home from "./components/Home.js";
 import Login from "./components/login.js";
 import Section from "./components/Section.js";
 import Feedback from "./components/Feedback.js";
-import IssuedEbook from "./components/IssuedEbook.js";
+import AvailableEbook from "./components/AvailableEbook.js";
 import AdminDashboard from "./components/adminDashboard.js";
 import AdminRequests from './components/AdminRequests.js';
 import UserDashboard from './components/userDashboard.js';
@@ -17,7 +17,7 @@ const routes = [
     { path: '/login', component: Login },
     { path: '/sections', component: Section },
     { path: '/feedback', component: Feedback },
-    { path: '/issued-ebooks', component: IssuedEbook },
+    { path: '/available-ebooks', component: AvailableEbook },
     { path: '/admin/dashboard', component: AdminDashboard, meta: { requiresAuth: true, role: 'admin' }},
     { path: '/user/dashboard', component: UserDashboard, meta: { requiresAuth: true, role: 'user' }},
     { path: '/admin-requests', component: AdminRequests }
