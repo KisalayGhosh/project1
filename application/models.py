@@ -22,6 +22,7 @@ class User(db.Model, UserMixin):
 
     # Define a relationship with Ebook
     ebook_resource = db.relationship('Ebook', backref='user', lazy='dynamic')
+    requests = db.relationship('Request', back_populates='user', lazy='dynamic')
 
 class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer(), primary_key=True)
@@ -31,15 +32,12 @@ class Role(db.Model, RoleMixin):
 class Ebook(db.Model):
     ebook_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    content = db.Column(db.Text)
-    author = db.Column(db.String(100))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Define the foreign key relationship with User
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-
-    def __repr__(self):
-        return f"Ebook('{self.title}', '{self.author}')"
+    content = db.Column(db.Text, nullable=False)
+    author = db.Column(db.String(100), nullable=False)
+    section_id = db.Column(db.Integer, db.ForeignKey('section.section_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    requests = db.relationship('Request', back_populates='ebook', lazy='dynamic')
 
 class Section(db.Model):
     section_id = db.Column(db.Integer, primary_key=True)
@@ -49,7 +47,7 @@ class Section(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Define the foreign key relationship with Ebook
-    ebook_id = db.Column(db.Integer, db.ForeignKey('ebook.ebook_id'), nullable=False)
+    ebooks = db.relationship('Ebook', backref='section', lazy='dynamic')
 
 class Request(db.Model):
     request_id = db.Column(db.Integer, primary_key=True)
@@ -61,10 +59,6 @@ class Request(db.Model):
     # Relationships
     user = db.relationship('User', back_populates='requests')
     ebook = db.relationship('Ebook', back_populates='requests')
-
-User.requests = db.relationship('Request', back_populates='user', lazy='dynamic')
-Ebook.requests = db.relationship('Request', back_populates='ebook', lazy='dynamic')
-
 
 class Feedback(db.Model):
     feedback_id = db.Column(db.Integer, primary_key=True)

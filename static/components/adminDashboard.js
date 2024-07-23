@@ -129,6 +129,7 @@ export default {
       return date.toLocaleDateString();
     },
     showAddEbookModal(sectionId) {
+      console.log("Opening Add Ebook Modal for Section ID:", sectionId); // Debug log
       this.currentSection.id = sectionId;
       this.newEbook = {
         title: '',
@@ -164,32 +165,43 @@ export default {
       }
     },
     showUpdateSectionModal(section) {
+      console.log("Opening Update Section Modal for Section:", section); // Debug log
       this.currentSection = { ...section };
       new bootstrap.Modal(document.getElementById('updateSectionModal')).show();
     },
     async updateSection() {
       try {
+        console.log("Updating Section:", this.currentSection); // Debug log
         const token = localStorage.getItem('auth_token');
-        const response = await fetch(`/sections/${this.currentSection.id}`, {
+        const response = await fetch(`/sections/${this.currentSection.section_id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify(this.currentSection)
+          body: JSON.stringify({
+            section_name: this.currentSection.name,
+            description: this.currentSection.description
+          })
         });
+    
         if (!response.ok) {
           throw new Error('Failed to update section.');
         }
+    
+        // Handle successful update
+        const updatedSection = await response.json();
+        console.log('Section updated:', updatedSection);
         this.fetchSections();
         bootstrap.Modal.getInstance(document.getElementById('updateSectionModal')).hide();
       } catch (error) {
         console.error('Error updating section:', error);
-        this.error = 'Failed to update section.';
       }
     },
+    
     async deleteSection(sectionId) {
       try {
+        console.log("Deleting Section ID:", sectionId); // Debug log
         const token = localStorage.getItem('auth_token');
         const response = await fetch(`/sections/${sectionId}`, {
           method: 'DELETE',
