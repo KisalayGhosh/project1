@@ -13,21 +13,21 @@ export default {
       </div>
 
       <!-- Display sections -->
-      <div class="row m-5">
-        <div class="col-lg-4 col-md-6 col-sm-12" v-for="section in filteredSections" :key="section.section_id">
-          <div class="card mb-3">
-            <div class="card-body">
-              <h5 class="card-title">{{ section.section_name }}</h5>
-              <p class="card-text">{{ section.description }}</p>
-              <p class="card-text">Created: {{ formatDate(section.created_at) }}</p>
-              <p class="card-text">Updated: {{ formatDate(section.updated_at) }}</p>
-              <button class="btn btn-primary" @click="showAddEbookModal(section.section_id)">Add Ebook</button>
-              <button class="btn btn-danger" @click="deleteSection(section.section_id)">Delete Section</button>
-              <button class="btn btn-success" @click="showUpdateSectionModal(section)">Update Section</button>
-            </div>
-          </div>
-        </div>
+<div class="row m-5">
+  <div class="col-lg-4 col-md-6 col-sm-12" v-for="section in filteredSections" :key="section.section_id">
+    <div class="card mb-3" @click="handleSectionClick(section.section_id)" style="cursor: pointer;">
+      <div class="card-body">
+        <h5 class="card-title">{{ section.section_name }}</h5>
+        <p class="card-text">{{ section.description }}</p>
+        <p class="card-text">Created: {{ formatDate(section.created_at) }}</p>
+        <p class="card-text">Updated: {{ formatDate(section.updated_at) }}</p>
+        <button class="btn btn-primary" @click.stop="showAddEbookModal(section.section_id)">Add Ebook</button>
+        <button class="btn btn-danger" @click.stop="deleteSection(section.section_id)">Delete Section</button>
+        <button class="btn btn-success" @click.stop="showUpdateSectionModal(section)">Update Section</button>
       </div>
+    </div>
+  </div>
+</div>
 
       <!-- Add ebook modal -->
       <div class="modal fade" id="addEbookModal" tabindex="-1" aria-labelledby="addEbookModalLabel" aria-hidden="true">

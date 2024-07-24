@@ -110,9 +110,12 @@ def update_section(section_id):
 def delete_section(section_id):
     section = Section.query.get(section_id)
     if section:
+        # Delete all associated ebooks
+        Ebook.query.filter_by(section_id=section_id).delete()
+        
         db.session.delete(section)
         db.session.commit()
-        return jsonify({"message": "Section deleted successfully"}), 200
+        return jsonify({"message": "Section and associated ebooks deleted successfully"}), 200
     return jsonify({"message": "Section not found"}), 404
 
 
@@ -170,6 +173,23 @@ def add_ebook_to_section(section_id):
     
     
     
+@app.get('/sections/<int:section_id>/ebooks')
+def get_ebooks_by_section(section_id):
+    section = Section.query.get(section_id)
+    if not section:
+        return jsonify({"message": "Section not found"}), 404
+    
+    ebooks = Ebook.query.filter_by(section_id=section_id).all()
+    ebook_list = [
+        {
+            'id': ebook.ebook_id,
+            'title': ebook.title,
+            'author': ebook.author,
+            'content': ebook.content
+        }
+        for ebook in ebooks
+    ]
+    return jsonify({"ebooks": ebook_list, "section_name": section.section_name})
     
 
 

@@ -34,7 +34,7 @@ class Ebook(db.Model):
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
     author = db.Column(db.String(100), nullable=False)
-    section_id = db.Column(db.Integer, db.ForeignKey('section.section_id'), nullable=False)
+    section_id = db.Column(db.Integer, db.ForeignKey('section.section_id', ondelete='SET NULL'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     requests = db.relationship('Request', back_populates='ebook', lazy='dynamic')
