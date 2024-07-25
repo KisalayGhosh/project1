@@ -9,6 +9,7 @@ import AvailableEbook from "./components/AvailableEbook.js";
 import AdminDashboard from "./components/adminDashboard.js";
 import AdminRequests from './components/AdminRequests.js';
 import UserDashboard from './components/userDashboard.js';
+import SectionBooks from './components/SectionBooks.js'; 
 
 Vue.use(VueRouter);
 
@@ -20,7 +21,8 @@ const routes = [
     { path: '/available-ebooks', component: AvailableEbook },
     { path: '/admin/dashboard', component: AdminDashboard, meta: { requiresAuth: true, role: 'admin' }},
     { path: '/user/dashboard', component: UserDashboard, meta: { requiresAuth: true, role: 'user' }},
-    { path: '/admin-requests', component: AdminRequests }
+    { path: '/admin-requests', component: AdminRequests, meta: { requiresAuth: true, role: 'admin' } },
+    { path: '/section-books/:sectionId', name: 'section-books', component: SectionBooks, meta: { requiresAuth: true, role: 'admin' } }
 ];
 
 const router = new VueRouter({
