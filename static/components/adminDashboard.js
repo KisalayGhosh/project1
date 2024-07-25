@@ -13,21 +13,26 @@ export default {
       </div>
 
       <!-- Display sections -->
-<div class="row m-5">
-  <div class="col-lg-4 col-md-6 col-sm-12" v-for="section in filteredSections" :key="section.section_id">
-    <div class="card mb-3" @click="handleSectionClick(section.section_id)" style="cursor: pointer;">
-      <div class="card-body">
-        <h5 class="card-title">{{ section.section_name }}</h5>
-        <p class="card-text">{{ section.description }}</p>
-        <p class="card-text">Created: {{ formatDate(section.created_at) }}</p>
-        <p class="card-text">Updated: {{ formatDate(section.updated_at) }}</p>
-        <button class="btn btn-primary" @click.stop="showAddEbookModal(section.section_id)">Add Ebook</button>
-        <button class="btn btn-danger" @click.stop="deleteSection(section.section_id)">Delete Section</button>
-        <button class="btn btn-success" @click.stop="showUpdateSectionModal(section)">Update Section</button>
+      <div class="row m-5">
+        <div class="col-lg-4 col-md-6 col-sm-12" v-for="section in filteredSections" :key="section.section_id">
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">{{ section.section_name }}</h5>
+              <p class="card-text">{{ section.description }}</p>
+              <p class="card-text">Created: {{ formatDate(section.created_at) }}</p>
+              <p class="card-text">Updated: {{ formatDate(section.updated_at) }}</p>
+              <div class="d-flex mb-2">
+                <button class="btn btn-primary me-2" @click="viewBooks(section.section_id)">View Books</button>
+                <button class="btn btn-primary" @click="showAddEbookModal(section.section_id)">Add Ebook</button>
+              </div>
+              <div class="d-flex">
+                <button class="btn btn-danger me-2" @click="deleteSection(section.section_id)">Delete Section</button>
+                <button class="btn btn-success" @click="showUpdateSectionModal(section)">Update Section</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
 
       <!-- Add ebook modal -->
       <div class="modal fade" id="addEbookModal" tabindex="-1" aria-labelledby="addEbookModalLabel" aria-hidden="true">
@@ -217,6 +222,9 @@ export default {
         console.error('Error deleting section:', error);
         this.error = 'Failed to delete section.';
       }
+    },
+    viewBooks(sectionId) {
+      this.$router.push({ name: 'section-books', params: { sectionId } });
     },
     filterSections() {
       this.filteredSections = this.allSections.filter(section => {
