@@ -128,7 +128,7 @@ def get_sections():
 
 
 
-
+#API for aadding ebook a card/secttion
 @app.post('/sections/<int:section_id>/ebooks')
 # @auth_required("token")
 # @roles_required("admin", "librarian")
@@ -172,7 +172,7 @@ def add_ebook_to_section(section_id):
     }), 201
     
     
-    
+#fetching ebook details after clicking card    
 @app.get('/sections/<int:section_id>/ebooks')
 def get_ebooks_by_section(section_id):
     section = Section.query.get(section_id)
@@ -191,6 +191,33 @@ def get_ebooks_by_section(section_id):
     ]
     return jsonify({"ebooks": ebook_list, "section_name": section.section_name})
     
+
+
+#
+
+@app.route('/api/issued-books/<int:user_id>', methods=['GET'])
+def get_issued_books(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    issued_books = IssuedEbook.query.filter_by(user_id=user_id).all()
+    books_info = []
+
+    for issued in issued_books:
+        book = Ebook.query.get(issued.ebook_id)
+        if book:
+            books_info.append({
+                "id": book.ebook_id,
+                "title": book.title,
+                "author": book.author,
+                "section": book.section.section_name,
+                "issuedDate": issued.issue_date.strftime("%Y-%m-%d"),
+                "returnDate": issued.return_date.strftime("%Y-%m-%d"),
+                "content": book.content
+            })
+
+    return jsonify(books_info)
 
 
 @app.route('/requests', methods=['GET'])

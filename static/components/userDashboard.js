@@ -34,9 +34,9 @@ export default {
                 </div>
                 <div class="mb-3">
                   <label for="comment" class="form-label">Comment</label>
-                  <textarea id="comment" class="form-control" v-model="feedback.comment" required></textarea>
+                  <textarea id="comment" class="form-control" v-model="feedback.comment" rows="3" required></textarea>
                 </div>
-                <button type="submit" class="btn btn-success">Submit Feedback</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
               </form>
             </div>
           </div>
@@ -46,59 +46,53 @@ export default {
   `,
   data() {
     return {
-      issuedBooks: [
-        {
-          id: 1,
-          title: 'Book Title 1',
-          author: 'Author 1',
-          section: 'Science',
-          issuedDate: '2024-07-10',
-          returnDate: '2024-08-10',
-          content: 'Detailed content about the book...'
-        },
-        {
-          id: 2,
-          title: 'Book Title 2',
-          author: 'Author 2',
-          section: 'Philosophy',
-          issuedDate: '2024-07-15',
-          returnDate: '2024-08-15',
-          content: 'Detailed content about the book...'
-        }
-      ],
+      issuedBooks: [],
       feedback: {
         bookId: null,
-        rating: '',
+        rating: null,
         comment: ''
       }
     };
   },
   methods: {
+    fetchIssuedBooks() {
+      const userId = 1; // Replace with actual user ID
+      fetch(`/api/issued-books/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+          this.issuedBooks = data;
+        })
+        .catch(error => console.error('Error fetching issued books:', error));
+    },
     openFeedbackModal(bookId) {
       this.feedback.bookId = bookId;
-      new bootstrap.Modal(document.getElementById('feedbackModal')).show();
+      const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+      feedbackModal.show();
     },
-    async submitFeedback() {
-      try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`/feedback`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(this.feedback)
-        });
-        if (!response.ok) {
-          throw new Error('Failed to submit feedback.');
-        }
-        // Reset feedback data and hide modal
-        this.feedback = { bookId: null, rating: '', comment: '' };
-        bootstrap.Modal.getInstance(document.getElementById('feedbackModal')).hide();
-      } catch (error) {
-        console.error('Error submitting feedback:', error);
-        // Handle feedback submission error
-      }
+    submitFeedback() {
+      const userId = 1; // Replace with actual user ID
+      fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: userId,
+          bookId: this.feedback.bookId,
+          rating: this.feedback.rating,
+          comment: this.feedback.comment
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Feedback submitted:', data);
+          const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+          feedbackModal.hide();
+        })
+        .catch(error => console.error('Error submitting feedback:', error));
     }
+  },
+  mounted() {
+    this.fetchIssuedBooks();
   }
 };

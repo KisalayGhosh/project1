@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from application.models import db, User, Role, Section, Ebook, Request, Feedback, IssuedEbook
 from werkzeug.security import generate_password_hash
 from flask_security import SQLAlchemyUserDatastore
@@ -72,6 +72,16 @@ def populate_data():
 
         db.session.commit()
 
+        # Create sections if they don't exist
+        if not Section.query.filter_by(section_name='Science').first():
+            section1 = Section(section_name='Science', description='Books related to science', created_at=datetime.utcnow())
+            db.session.add(section1)
+        if not Section.query.filter_by(section_name='Philosophy').first():
+            section2 = Section(section_name='Philosophy', description='Books related to philosophy', created_at=datetime.utcnow())
+            db.session.add(section2)
+
+        db.session.commit()
+
         # Create ebooks if they don't exist
         admin_user = User.query.filter_by(email='admin@email.com').first()
 
@@ -81,16 +91,6 @@ def populate_data():
         if not Ebook.query.filter_by(title='Meditations').first():
             ebook2 = Ebook(title='Meditations', content='...', author='Marcus Aurelius', user=admin_user, section_id=2, created_at=datetime.utcnow())
             db.session.add(ebook2)
-
-        db.session.commit()
-
-        # Create sections if they don't exist, linking them to ebooks
-        if not Section.query.filter_by(section_name='Science').first():
-            section1 = Section(section_name='Science', description='Books related to science', created_at=datetime.utcnow())
-            db.session.add(section1)
-        if not Section.query.filter_by(section_name='Philosophy').first():
-            section2 = Section(section_name='Philosophy', description='Books related to philosophy', created_at=datetime.utcnow())
-            db.session.add(section2)
 
         db.session.commit()
 
@@ -107,16 +107,29 @@ def populate_data():
 
         db.session.commit()
 
-        # Create requests if they don't exist
+        # Create issued ebooks if they don't exist
         user1 = User.query.filter_by(email='user1@email.com').first()
         user2 = User.query.filter_by(email='user2@email.com').first()
 
-        if not Request.query.filter_by(user_id=user1.id, ebook_id=ebook1.ebook_id).first():
-            request1 = Request(user_id=user1.id, ebook_id=ebook1.ebook_id, request_date=datetime.utcnow(), status='pending')
-            db.session.add(request1)
-        if not Request.query.filter_by(user_id=user2.id, ebook_id=ebook2.ebook_id).first():
-            request2 = Request(user_id=user2.id, ebook_id=ebook2.ebook_id, request_date=datetime.utcnow(), status='pending')
-            db.session.add(request2)
+        if not IssuedEbook.query.filter_by(user_id=user1.id, ebook_id=ebook1.ebook_id).first():
+            issued_ebook1 = IssuedEbook(
+                user_id=user1.id, 
+                ebook_id=ebook1.ebook_id, 
+                issue_date=datetime.utcnow() - timedelta(days=5), 
+                return_date=datetime.utcnow() + timedelta(days=25),
+                status='issued'
+            )
+            db.session.add(issued_ebook1)
+        
+        if not IssuedEbook.query.filter_by(user_id=user2.id, ebook_id=ebook2.ebook_id).first():
+            issued_ebook2 = IssuedEbook(
+                user_id=user2.id, 
+                ebook_id=ebook2.ebook_id, 
+                issue_date=datetime.utcnow() - timedelta(days=3), 
+                return_date=datetime.utcnow() + timedelta(days=27),
+                status='issued'
+            )
+            db.session.add(issued_ebook2)
 
         db.session.commit()
 
@@ -125,8 +138,6 @@ def populate_data():
         print(f"An error occurred: {e}")
     finally:
         db.session.close()
-
-
 
 if __name__ == '__main__':
     with app.app_context():
