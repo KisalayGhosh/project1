@@ -5,6 +5,7 @@ from werkzeug.security import check_password_hash
 from application.resources import RequestResource, FeedbackResource, IssuedEbookResource, SectionResource
 from main import datastore
 from datetime import datetime
+from flask_security import current_user
 
 @app.get('/')
 def home():
@@ -193,10 +194,11 @@ def get_ebooks_by_section(section_id):
     
 
 
-#
-
-@app.route('/api/issued-books/<int:user_id>', methods=['GET'])
-def get_issued_books(user_id):
+#Issued ebook related to the logged in user
+@app.route('/api/issued-books', methods=['GET'])
+@auth_required('token')
+def get_issued_books():
+    user_id = current_user.id
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -218,6 +220,7 @@ def get_issued_books(user_id):
             })
 
     return jsonify(books_info)
+
 
 
 @app.route('/requests', methods=['GET'])
