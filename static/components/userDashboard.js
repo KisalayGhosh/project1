@@ -56,8 +56,11 @@ export default {
   },
   methods: {
     fetchIssuedBooks() {
-      const userId = 1; // Replace with actual user ID
-      fetch(`/api/issued-books/${userId}`)
+      fetch('/api/issued-books', {
+        headers: {
+          'Authentication-Token': localStorage.getItem('token') 
+        }
+      })
         .then(response => response.json())
         .then(data => {
           this.issuedBooks = data;
@@ -70,11 +73,12 @@ export default {
       feedbackModal.show();
     },
     submitFeedback() {
-      const userId = 1; // Replace with actual user ID
+      const userId = 1; 
       fetch('/api/feedback', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authentication-Token': localStorage.getItem('token') 
         },
         body: JSON.stringify({
           userId: userId,
