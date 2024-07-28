@@ -51,14 +51,15 @@ export default {
         bookId: null,
         rating: null,
         comment: ''
-      }
+      },
+      userId: null // Add userId to the data object
     };
   },
   methods: {
     fetchIssuedBooks() {
       fetch('/api/issued-books', {
         headers: {
-          'Authentication-Token': localStorage.getItem('token') 
+          'Authentication-Token': localStorage.getItem('token')
         }
       })
         .then(response => response.json())
@@ -67,22 +68,39 @@ export default {
         })
         .catch(error => console.error('Error fetching issued books:', error));
     },
+    fetchUserId() {
+      // Example method to fetch user ID from the backend
+      fetch('/api/user-id', {
+        headers: {
+          'Authentication-Token': localStorage.getItem('token')
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          this.userId = data.user_id; // Assuming the response contains a field user_id
+        })
+        .catch(error => console.error('Error fetching user ID:', error));
+    },
     openFeedbackModal(bookId) {
       this.feedback.bookId = bookId;
       const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
       feedbackModal.show();
     },
     submitFeedback() {
-      const userId = 1; 
+      if (!this.userId) {
+        console.error('User ID is not available');
+        return;
+      }
+
       fetch('/api/feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authentication-Token': localStorage.getItem('token') 
+          'Authentication-Token': localStorage.getItem('token')
         },
         body: JSON.stringify({
-          userId: userId,
-          bookId: this.feedback.bookId,
+          user_id: this.userId,
+          ebook_id: this.feedback.bookId,
           rating: this.feedback.rating,
           comment: this.feedback.comment
         })
@@ -90,13 +108,20 @@ export default {
         .then(response => response.json())
         .then(data => {
           console.log('Feedback submitted:', data);
-          const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+          const feedbackModal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
           feedbackModal.hide();
+          // Optionally, you can clear the feedback form
+          this.feedback = {
+            bookId: null,
+            rating: null,
+            comment: ''
+          };
         })
         .catch(error => console.error('Error submitting feedback:', error));
     }
   },
   mounted() {
     this.fetchIssuedBooks();
+    this.fetchUserId(); // Fetch user ID when the component is mounted
   }
 };
