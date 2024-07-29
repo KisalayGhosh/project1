@@ -12,13 +12,13 @@ export default {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="feedback in feedbackList" :key="feedback.id">
-            <td>{{ feedback.ebookName }}</td>
-            <td>{{ feedback.username }}</td>
+          <tr v-for="feedback in feedbackList" :key="feedback.feedback_id">
+            <td>{{ feedback.ebook_title }}</td>
+            <td>{{ feedback.user_email }}</td>
             <td>{{ feedback.comment }}</td>
             <td>{{ feedback.rating }}</td>
             <td>
-              <button @click="deleteFeedback(feedback.id)" class="btn btn-danger btn-sm">
+              <button @click="deleteFeedback(feedback.feedback_id)" class="btn btn-danger btn-sm">
                 <i class="fas fa-trash"></i>
               </button>
             </td>
@@ -29,28 +29,44 @@ export default {
   `,
   data() {
     return {
-      feedbackList: [
-        {
-          id: 1,
-          ebookName: 'Book Title 1',
-          username: 'user1@example.com',
-          comment: 'Great book!',
-          rating: 5
-        },
-        {
-          id: 2,
-          ebookName: 'Book Title 2',
-          username: 'user2@example.com',
-          comment: 'Very informative.',
-          rating: 4
-        }
-      ]
+      feedbackList: [],
     };
   },
+  created() {
+    this.fetchFeedbacks();
+  },
   methods: {
+    fetchFeedbacks() {
+      fetch('/api/feedbacks')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          this.feedbackList = data;
+        })
+        .catch(error => {
+          console.error('Error fetching feedbacks:', error);
+        });
+    },
     deleteFeedback(feedbackId) {
-      // Function to handle feedback deletion
-      this.feedbackList = this.feedbackList.filter(feedback => feedback.id !== feedbackId);
+      fetch(`/api/feedbacks/${feedbackId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          this.feedbackList = this.feedbackList.filter(feedback => feedback.feedback_id !== feedbackId);
+        })
+        .catch(error => {
+          console.error('Error deleting feedback:', error);
+        });
     }
   }
 };

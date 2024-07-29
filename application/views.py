@@ -263,6 +263,36 @@ def submit_feedback():
     db.session.add(feedback)
     db.session.commit()
 
+@app.route('/api/feedbacks', methods=['GET'])
+def get_all_feedbacks():
+    feedbacks = Feedback.query.all()
+    feedback_list = []
+    for feedback in feedbacks:
+        ebook = Ebook.query.get(feedback.ebook_id)
+        user = User.query.get(feedback.user_id)
+        feedback_list.append({
+            'feedback_id': feedback.feedback_id,
+            'user_id': feedback.user_id,
+            'user_email': user.email if user else 'Unknown',
+            'ebook_id': feedback.ebook_id,
+            'ebook_title': ebook.title if ebook else 'Unknown',
+            'rating': feedback.rating,
+            'comment': feedback.comment,
+            'created_at': feedback.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        })
+    return jsonify(feedback_list)
+
+@app.route('/api/feedbacks/<int:feedback_id>', methods=['DELETE'])
+# @auth_required('token')
+# @roles_required('admin', 'librarian')
+def delete_feedback(feedback_id):
+    feedback = Feedback.query.get(feedback_id)
+    if feedback:
+        db.session.delete(feedback)
+        db.session.commit()
+        return jsonify({"message": "Feedback deleted successfully"}), 200
+    return jsonify({"message": "Feedback not found"}), 404
+
 
 
 @app.route('/requests', methods=['GET'])
