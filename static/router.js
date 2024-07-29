@@ -17,7 +17,7 @@ const routes = [
     { path: '/', component: Home },
     { path: '/login', component: Login },
     { path: '/sections', component: Section },
-    { path: '/feedback', component: Feedback },
+    { path: '/feedback', component: Feedback, meta: { requiresAuth: true, role: 'admin' } },
     { path: '/available-ebooks', component: AvailableEbook },
     { path: '/admin/dashboard', component: AdminDashboard, meta: { requiresAuth: true, role: 'admin' }},
     { path: '/user/dashboard', component: UserDashboard, meta: { requiresAuth: true, role: 'user' }},
