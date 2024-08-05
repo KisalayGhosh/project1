@@ -53,12 +53,13 @@ export default {
     async requestEbook(ebookId) {
       try {
         const token = localStorage.getItem('auth_token');
-        const response = await fetch(`/request_ebook/${ebookId}`, {
+        const response = await fetch(`/requests`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
-          }
+          },
+          body: JSON.stringify({ ebook_id: ebookId })
         });
         if (!response.ok) {
           throw new Error('Failed to request ebook.');

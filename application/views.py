@@ -4,7 +4,7 @@ from application.models import User, db, Section, Request, Feedback, IssuedEbook
 from werkzeug.security import check_password_hash
 from application.resources import RequestResource, FeedbackResource, IssuedEbookResource, SectionResource
 from main import datastore
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_security import current_user
 
 @app.get('/')
@@ -296,50 +296,65 @@ def delete_feedback(feedback_id):
 
 
 @app.route('/requests', methods=['GET'])
-# @auth_required('token')
+@roles_required('admin')
 def get_requests():
     requests = Request.query.all()
-    request_data = []
-    for req in requests:
-        request_data.append({
-            'request_id': req.request_id,
-            'user': {
-                'id': req.user.id,
-                'email': req.user.email
-            },
-            'ebook': {
-                'ebook_id': req.ebook.ebook_id,
-                'title': req.ebook.title,
-                'author': req.ebook.author,
-                'section': {
-                    'section_id': req.ebook.section.section_id,
-                    'section_name': req.ebook.section.section_name
-                }
-            },
-            'request_date': req.request_date,
-            'status': req.status
-        })
-    return jsonify(request_data)
+    return jsonify([r.to_dict() for r in requests])
 
-@app.route('/requests/<int:request_id>/grant', methods=['POST'])
-# @auth_required('token')
+@app.route('/requests', methods=['POST'])
+@auth_required('token')
+def create_request():
+    data = request.get_json()
+    ebook_id = data.get('ebook_id')
+
+    if not ebook_id:
+        return jsonify({"error": "ebook_id is required"}), 400
+
+    ebook = Ebook.query.get(ebook_id)
+    if not ebook:
+        return jsonify({"error": "Ebook not found"}), 404
+
+    user_id = current_user.id  # Ensure user_id is fetched correctly
+
+    # Create and save the request
+    new_request = Request(user_id=user_id, ebook_id=ebook_id, status='pending')
+    db.session.add(new_request)
+    db.session.commit()
+
+    return jsonify({"message": "Request created successfully", "request_id": new_request.request_id}), 201
+
+@app.route('/requests/<int:request_id>/grant', methods=['PUT'])
+@roles_required('admin')
 def grant_request(request_id):
-    req = Request.query.get(request_id)
-    if req:
-        req.status = 'granted'
-        db.session.commit()
-        return jsonify({'message': 'Request granted.'}), 200
-    return jsonify({'error': 'Request not found.'}), 404
+    req = Request.query.get_or_404(request_id)
+    if req.status != 'pending':
+        return jsonify({'message': 'Request cannot be granted'}), 400
 
-@app.route('/requests/<int:request_id>/revoke', methods=['POST'])
-# @auth_required('token')
+    req.status = 'issued'
+    db.session.commit()
+
+    issued_ebook = IssuedEbook(
+        user_id=req.user_id,
+        ebook_id=req.ebook_id,
+        issue_date=datetime.utcnow(),
+        return_date=datetime.utcnow() + timedelta(days=30),
+        status='issued'
+    )
+    db.session.add(issued_ebook)
+    db.session.commit()
+
+    return jsonify(req.to_dict())
+
+@app.route('/requests/<int:request_id>/revoke', methods=['PUT'])
+@roles_required('admin')
 def revoke_request(request_id):
-    req = Request.query.get(request_id)
-    if req:
-        req.status = 'revoked'
-        db.session.commit()
-        return jsonify({'message': 'Request revoked.'}), 200
-    return jsonify({'error': 'Request not found.'}), 404
+    req = Request.query.get_or_404(request_id)
+    if req.status != 'pending':
+        return jsonify({'message': 'Request cannot be revoked'}), 400
+
+    req.status = 'revoked'
+    db.session.commit()
+    return jsonify(req.to_dict())
 
 
 

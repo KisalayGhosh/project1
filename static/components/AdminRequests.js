@@ -34,51 +34,67 @@ export default {
   },
   methods: {
     fetchDemoData() {
-      this.requests = [
-        {
-          request_id: 1,
-          ebook: {
-            ebook_id: 101,
-            title: 'Book Title 1',
-            author: 'Author 1'
-          },
-          user: {
-            email: 'user1@example.com'
-          }
-        },
-        {
-          request_id: 2,
-          ebook: {
-            ebook_id: 102,
-            title: 'Book Title 2',
-            author: 'Author 2'
-          },
-          user: {
-            email: 'user2@example.com'
-          }
-        }
-      ];
-
-      this.sections = [
-        {
-          ebook_id: 101,
-          section_name: 'Section 1'
-        },
-        {
-          ebook_id: 102,
-          section_name: 'Section 2'
-        }
-      ];
+      fetch('/requests')
+        .then(response => response.json())
+        .then(data => {
+          this.requests = data;
+          // Fetch sections data for display
+          return fetch('/sections');
+        })
+        .then(response => response.json())
+        .then(data => {
+          this.sections = data;
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+          this.error = 'Failed to load data.';
+        });
     },
     getSectionName(ebookId) {
       const section = this.sections.find(section => section.ebook_id === ebookId);
       return section ? section.section_name : 'N/A';
     },
     grantRequest(requestId) {
-      this.requests = this.requests.filter(request => request.request_id !== requestId);
+      fetch(`/requests/${requestId}/grant`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to grant request.');
+        }
+        return response.json();
+      })
+      .then(() => {
+        this.requests = this.requests.filter(request => request.request_id !== requestId);
+      })
+      .catch(error => {
+        console.error('Error granting request:', error);
+        this.error = 'Failed to grant request.';
+      });
     },
     revokeRequest(requestId) {
-      this.requests = this.requests.filter(request => request.request_id !== requestId);
+      fetch(`/requests/${requestId}/revoke`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to revoke request.');
+        }
+        return response.json();
+      })
+      .then(() => {
+        this.requests = this.requests.filter(request => request.request_id !== requestId);
+      })
+      .catch(error => {
+        console.error('Error revoking request:', error);
+        this.error = 'Failed to revoke request.';
+      });
     }
   }
 };
