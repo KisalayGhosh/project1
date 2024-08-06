@@ -60,6 +60,15 @@ class Request(db.Model):
     user = db.relationship('User', back_populates='requests')
     ebook = db.relationship('Ebook', back_populates='requests')
 
+    def to_dict(self):
+        return {
+            'request_id': self.request_id,
+            'user_id': self.user_id,
+            'ebook_id': self.ebook_id,
+            'status': self.status,
+            'request_date':self.request_date
+        }
+
 class Feedback(db.Model):
     feedback_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
