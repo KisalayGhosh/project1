@@ -1,14 +1,16 @@
 export default {
-  props: ['sectionId'],
+  props: [],
   template: `
     <div class="container my-4">
-      <h2 class="mb-4">Available Ebooks for Section {{ sectionName }}</h2>
+      <h2 class="mb-4">Available Ebooks</h2>
       <div v-if="error" class="alert alert-danger">{{ error }}</div>
+      <div v-if="success" class="alert alert-success">{{ success }}</div>
       <table class="table table-striped" v-if="availableEbooks.length > 0">
         <thead>
           <tr>
             <th>Book Title</th>
             <th>Author</th>
+            <th>Section</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -16,20 +18,21 @@ export default {
           <tr v-for="ebook in availableEbooks" :key="ebook.id">
             <td>{{ ebook.title }}</td>
             <td>{{ ebook.author }}</td>
+            <td>{{ ebook.section_name }}</td>
             <td>
               <button class="btn btn-primary" @click="requestEbook(ebook.id)">Request</button>
             </td>
           </tr>
         </tbody>
       </table>
-      <div v-else class="alert alert-info">No ebooks available for this section.</div>
+      <div v-else class="alert alert-info">No ebooks available.</div>
     </div>
   `,
   data() {
     return {
       availableEbooks: [],
-      sectionName: '',
       error: null,
+      success: null,
     };
   },
   created() {
@@ -38,13 +41,12 @@ export default {
   methods: {
     async fetchAvailableEbooks() {
       try {
-        const response = await fetch(`http://127.0.0.1:5000/sections/${this.sectionId}/ebooks`);
+        const response = await fetch(`http://127.0.0.1:5000/ebooks`);
         if (!response.ok) {
           throw new Error('Failed to fetch available ebooks.');
         }
         const data = await response.json();
-        this.availableEbooks = data.ebooks;
-        this.sectionName = data.section_name;
+        this.availableEbooks = data;
       } catch (error) {
         console.error('Error fetching available ebooks:', error);
         this.error = 'Failed to load ebooks.';
@@ -52,26 +54,30 @@ export default {
     },
     async requestEbook(ebookId) {
       try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`/requests`, {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No token found');
+
+        const response = await fetch('/requests', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authentication-Token': token,
           },
-          body: JSON.stringify({ ebook_id: ebookId })
+          body: JSON.stringify({ ebook_id: ebookId }),
         });
+
         if (!response.ok) {
-          throw new Error('Failed to request ebook.');
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to request ebook.');
         }
-        alert('Ebook requested successfully!');
+
+        this.success = 'Ebook requested successfully!';
+        setTimeout(() => { this.success = null; }, 3000); // Hide success message after 3 seconds
+
       } catch (error) {
         console.error('Error requesting ebook:', error);
         this.error = 'Failed to request ebook.';
       }
     }
-  },
-  watch: {
-    sectionId: 'fetchAvailableEbooks' // Watch for changes to sectionId and refetch ebooks
   }
 };
