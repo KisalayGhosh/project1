@@ -296,7 +296,7 @@ def delete_feedback(feedback_id):
 
 
 @app.route('/requests', methods=['GET'])
-@roles_required('admin')
+# @roles_required('admin')
 def get_requests():
     requests = Request.query.all()
     return jsonify([r.to_dict() for r in requests])
@@ -356,6 +356,35 @@ def revoke_request(request_id):
     db.session.commit()
     return jsonify(req.to_dict())
 
+@app.route('/ebooks', methods=['GET'])
+# @auth_required('token')
+def get_all_ebooks():
+    ebooks = Ebook.query.all()
+    ebook_list = [
+        {
+            'id': ebook.ebook_id,
+            'title': ebook.title,
+            'author': ebook.author,
+            'content': ebook.content,
+            'section_id': ebook.section_id,
+            'section_name': ebook.section.section_name
+        }
+        for ebook in ebooks
+    ]
+    return jsonify(ebook_list)
+
+@app.route('/dashboard/summary', methods=['GET'])
+# @roles_required('admin', 'librarian')
+def dashboard_summary():
+    total_sections = Section.query.count()
+    total_ebooks = Ebook.query.count()
+    total_issued_ebooks = IssuedEbook.query.count()
+    
+    return jsonify({
+        'total_sections': total_sections,
+        'total_ebooks': total_ebooks,
+        'total_issued_ebooks': total_issued_ebooks
+    })
 
 
 
