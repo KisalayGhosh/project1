@@ -1,11 +1,15 @@
-from flask import current_app as app, render_template, jsonify, request
+from flask import current_app as app, render_template, jsonify, request, send_file
 from flask_security import auth_required, roles_required
-from application.models import User, db, Section, Request, Feedback, IssuedEbook,Ebook
+from application.models import User, db, Section, Request, Feedback, IssuedEbook,Ebook, Purchase
 from werkzeug.security import check_password_hash
 from application.resources import RequestResource, FeedbackResource, IssuedEbookResource, SectionResource
 from main import datastore
 from datetime import datetime, timedelta
 from flask_security import current_user
+import pdfkit
+from io import BytesIO
+
+pdfkit_config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
 
 @app.get('/')
 def home():
@@ -155,6 +159,7 @@ def add_ebook_to_section(section_id):
     title = data.get('title')
     content = data.get('content')
     author = data.get('author')
+    price= data.get('price')
 
     if not (title and content and author):
         return jsonify({"message": "Title, content, and author are required"}), 400
@@ -171,6 +176,7 @@ def add_ebook_to_section(section_id):
         author=author,
         section=section,
         user=admin_user,
+        price=price,
         created_at=datetime.utcnow()
     )
 
@@ -185,6 +191,7 @@ def add_ebook_to_section(section_id):
             'content': new_ebook.content,
             'author': new_ebook.author,
             'section_id': new_ebook.section.section_id,
+            'price':new_ebook.price,
             'created_at': new_ebook.created_at
         }
     }), 201
@@ -203,6 +210,7 @@ def get_ebooks_by_section(section_id):
             'id': ebook.ebook_id,
             'title': ebook.title,
             'author': ebook.author,
+            'price':ebook.price,
             'content': ebook.content
         }
         for ebook in ebooks
@@ -387,6 +395,66 @@ def dashboard_summary():
     })
 
 
+#used for fownloading pdf reports for users monthly data
+@app.route('/generate-report', methods=['POST'])
+def generate_report():
+    data = request.json
+    user_id = data.get('user_id')
+    month = data.get('month')
+    report_format = data.get('format')
+
+    # Fetch user activities based on user_id and month
+    report_content = fetch_user_activity_report(user_id, month)
+
+    if report_format == 'html':
+        return report_content, 200, {'Content-Type': 'text/html'}
+    elif report_format == 'pdf':
+        pdf_file_path = generate_pdf_report(report_content)
+        return send_file(pdf_file_path, as_attachment=True)
+
+def fetch_user_activity_report(user_id, month):
+    # Mock data for demonstration
+    return f"<h1>Monthly Activity Report for User {user_id} - Month {month}</h1>"
+
+def generate_pdf_report(html_content):
+    pdf_file_path = 'report.pdf'
+    pdfkit.from_string(html_content, pdf_file_path, configuration=pdfkit_config)
+    return pdf_file_path
+
+
+
+@app.route('/purchases', methods=['POST'])
+def purchase_ebook():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    ebook_id = data.get('ebook_id')
+
+    # Check if the user has already purchased the e-book
+    existing_purchase = Purchase.query.filter_by(user_id=user_id, ebook_id=ebook_id).first()
+    if existing_purchase:
+        return jsonify({'message': 'Ebook already purchased.'}), 400
+
+    # Add the purchase to the database
+    purchase = Purchase(user_id=user_id, ebook_id=ebook_id)
+    db.session.add(purchase)
+    db.session.commit()
+
+    return jsonify({'message': 'Ebook purchased successfully.'})
+
+@app.route('/download/<int:ebook_id>', methods=['GET'])
+def download_ebook(ebook_id):
+    user_id = request.args.get('user_id')
+
+    # Check if the user has purchased the e-book
+    purchase = Purchase.query.filter_by(user_id=user_id, ebook_id=ebook_id).first()
+    if not purchase:
+        return jsonify({'message': 'Ebook not purchased.'}), 403
+
+    ebook = Ebook.query.get(ebook_id)
+
+    # Convert ebook content to PDF
+    pdf_content = pdfkit.from_string(ebook.content, False)
+    return send_file(BytesIO(pdf_content), as_attachment=True, download_name=f'{ebook.title}.pdf')
 
 
 

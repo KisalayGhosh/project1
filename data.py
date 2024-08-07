@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta
-from application.models import db, User, Role, Section, Ebook, Request, Feedback, IssuedEbook
+from application.models import db, User, Role, Section, Ebook, IssuedEbook
 from werkzeug.security import generate_password_hash
 from flask_security import SQLAlchemyUserDatastore
 from flask import Flask
-from application.models import db, User, Role
 from config import DevelopmentConfig
 from application.resources import api
 from flask_security import SQLAlchemyUserDatastore, Security
@@ -86,10 +85,10 @@ def populate_data():
         admin_user = User.query.filter_by(email='admin@email.com').first()
 
         if not Ebook.query.filter_by(title='Introduction to Physics').first():
-            ebook1 = Ebook(title='Introduction to Physics', content='...', author='John Doe', user=admin_user, section_id=1, created_at=datetime.utcnow())
+            ebook1 = Ebook(title='Introduction to Physics', content='...', author='John Doe', user=admin_user, section_id=1, created_at=datetime.utcnow(), price=10.00)
             db.session.add(ebook1)
         if not Ebook.query.filter_by(title='Meditations').first():
-            ebook2 = Ebook(title='Meditations', content='...', author='Marcus Aurelius', user=admin_user, section_id=2, created_at=datetime.utcnow())
+            ebook2 = Ebook(title='Meditations', content='...', author='Marcus Aurelius', user=admin_user, section_id=2, created_at=datetime.utcnow(), price=8.00)
             db.session.add(ebook2)
 
         db.session.commit()

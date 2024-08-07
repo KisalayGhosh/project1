@@ -23,6 +23,7 @@ class User(db.Model, UserMixin):
     # Define a relationship with Ebook
     ebook_resource = db.relationship('Ebook', backref='user', lazy='dynamic')
     requests = db.relationship('Request', back_populates='user', lazy='dynamic')
+    purchases = db.relationship('Purchase', backref='user', lazy=True)
 
 class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer(), primary_key=True)
@@ -38,6 +39,15 @@ class Ebook(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     requests = db.relationship('Request', back_populates='ebook', lazy='dynamic')
+    price = db.Column(db.Float, nullable=True, default=0.0)
+
+
+class Purchase(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    ebook_id = db.Column(db.Integer, db.ForeignKey('ebook.ebook_id'), nullable=False)
+    ebook = db.relationship('Ebook')
+
 
 class Section(db.Model):
     section_id = db.Column(db.Integer, primary_key=True)

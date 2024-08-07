@@ -56,6 +56,10 @@ export default {
                   <label for="ebookAuthor" class="form-label">Author</label>
                   <input type="text" class="form-control" id="ebookAuthor" v-model="newEbook.author" required>
                 </div>
+                <div class="mb-3">
+                  <label for="ebookPrice" class="form-label">Price</label>
+                  <input type="number" class="form-control" id="ebookPrice" v-model="newEbook.price" required min="0" step="0.01">
+                </div>
                 <button type="submit" class="btn btn-success">Add Ebook</button>
               </form>
             </div>
@@ -97,7 +101,8 @@ export default {
       newEbook: {
         title: '',
         content: '',
-        author: ''
+        author: '',
+        price: 0.0  // Added price field
       },
       showAddEbookFormFlag: false,
       currentSection: {
@@ -139,7 +144,8 @@ export default {
       this.newEbook = {
         title: '',
         content: '',
-        author: ''
+        author: '',
+        price: null  // Reset price field
       };
       new bootstrap.Modal(document.getElementById('addEbookModal')).show();
     },
@@ -161,7 +167,8 @@ export default {
         this.newEbook = {
           title: '',
           content: '',
-          author: ''
+          author: '',
+          price: null  // Reset price field
         };
         bootstrap.Modal.getInstance(document.getElementById('addEbookModal')).hide();
       } catch (error) {

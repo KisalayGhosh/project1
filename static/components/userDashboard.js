@@ -2,6 +2,18 @@ export default {
   template: `
     <div class="container my-4">
       <h5 class="mb-4">User Dashboard</h5>
+      
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <label for="reportMonth">Select Month</label>
+          <input type="month" id="reportMonth" v-model="selectedMonth" class="form-control">
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+          <button class="btn btn-primary me-2" @click="downloadReport('html')">Download HTML Report</button>
+          <button class="btn btn-secondary" @click="downloadReport('pdf')">Download PDF Report</button>
+        </div>
+      </div>
+      
       <div class="row">
         <div class="col-md-4" v-for="book in issuedBooks" :key="book.id">
           <div class="card mb-4">
@@ -11,7 +23,6 @@ export default {
               <p class="card-text">Section: {{ book.section }}</p>
               <p class="card-text">Issued Date: {{ book.issuedDate }}</p>
               <p class="card-text">Return Date: {{ book.returnDate }}</p>
-              <p class="card-text">Content: {{ book.content }}</p>
               <button class="btn btn-primary" @click="openFeedbackModal(book.id)">Give Feedback</button>
             </div>
           </div>
@@ -52,7 +63,9 @@ export default {
         rating: null,
         comment: ''
       },
-      userId: null // Add userId to the data object
+      userId: null,
+      selectedMonth: null,
+      error: null
     };
   },
   methods: {
@@ -69,7 +82,6 @@ export default {
         .catch(error => console.error('Error fetching issued books:', error));
     },
     fetchUserId() {
-      // Example method to fetch user ID from the backend
       fetch('/api/user-id', {
         headers: {
           'Authentication-Token': localStorage.getItem('token')
@@ -77,7 +89,7 @@ export default {
       })
         .then(response => response.json())
         .then(data => {
-          this.userId = data.user_id; // Assuming the response contains a field user_id
+          this.userId = data.user_id;
         })
         .catch(error => console.error('Error fetching user ID:', error));
     },
@@ -110,7 +122,6 @@ export default {
           console.log('Feedback submitted:', data);
           const feedbackModal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
           feedbackModal.hide();
-          // Optionally, you can clear the feedback form
           this.feedback = {
             bookId: null,
             rating: null,
@@ -118,10 +129,57 @@ export default {
           };
         })
         .catch(error => console.error('Error submitting feedback:', error));
+    },
+    async downloadReport(format) {
+      try {
+        if (!this.selectedMonth) {
+          this.error = 'Please select a month.';
+          return;
+        }
+
+        const response = await fetch('/generate-report', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authentication-Token': localStorage.getItem('token')
+          },
+          body: JSON.stringify({
+            user_id: this.userId,
+            month: this.selectedMonth,
+            format: format
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to generate report.');
+        }
+
+        if (format === 'html') {
+          const reportHtml = await response.text();
+          const blob = new Blob([reportHtml], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'report.html';
+          a.click();
+        } else if (format === 'pdf') {
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'report.pdf';
+          a.click();
+        }
+
+      } catch (error) {
+        console.error('Error downloading report:', error);
+        this.error = 'Failed to download report.';
+      }
     }
   },
   mounted() {
     this.fetchIssuedBooks();
-    this.fetchUserId(); // Fetch user ID when the component is mounted
+    this.fetchUserId();
   }
 };
