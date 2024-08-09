@@ -15,6 +15,9 @@ export default {
               <router-link class="nav-link" to="/admin/dashboard">Admin Dashboard</router-link>
             </li>
             <li class="nav-item" v-if="isUser">
+              <router-link class="nav-link" to="/purchase-issued-ebooks">Purchase Book</router-link>
+            </li>
+            <li class="nav-item" v-if="isUser">
               <router-link class="nav-link" to="/user/dashboard">User Dashboard</router-link>
             </li>
             <li class="nav-item" v-if="isAdmin">

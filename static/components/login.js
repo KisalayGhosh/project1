@@ -20,6 +20,9 @@ export default {
                                 <button type="submit" class="mt-2 btn btn-primary btn-block">Login</button>
                                 <p class="text-danger mt-2" v-if="error">{{ error }}</p>
                             </form>
+                            <div class="mt-3 text-center">
+                                <button @click="goToRegister" class="btn btn-secondary">Register</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -57,6 +60,7 @@ export default {
                     } else {
                         this.$router.push('/'); 
                     }
+                    window.location.reload();
                 } else {
                     this.error = data.message || 'Login failed';
                 }
@@ -65,6 +69,9 @@ export default {
                 console.error('Login error:', error);
                 this.error = 'An error occurred during login';
             });
+        },
+        goToRegister() {
+            this.$router.push('/register');
         }
     }
 };

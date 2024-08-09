@@ -1,4 +1,5 @@
 export default {
+  props: [],
   template: `
     <div class="container my-4">
       <h2 class="mb-4">Available Ebooks</h2>
@@ -10,7 +11,6 @@ export default {
             <th>Book Title</th>
             <th>Author</th>
             <th>Section</th>
-            <th>Price</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -19,10 +19,8 @@ export default {
             <td>{{ ebook.title }}</td>
             <td>{{ ebook.author }}</td>
             <td>{{ ebook.section_name }}</td>
-            <td>{{ ebook.price }}</td>
             <td>
-              <button class="btn btn-primary" @click="purchaseEbook(ebook.id)">Purchase</button>
-              <button class="btn btn-secondary" @click="downloadEbook(ebook.id)" v-if="purchasedEbooks.includes(ebook.id)">Download</button>
+              <button class="btn btn-primary" @click="requestEbook(ebook.id)">Request</button>
             </td>
           </tr>
         </tbody>
@@ -33,46 +31,33 @@ export default {
   data() {
     return {
       availableEbooks: [],
-      purchasedEbooks: [], // Track purchased e-books
       error: null,
       success: null,
     };
   },
   created() {
     this.fetchAvailableEbooks();
-    this.fetchPurchasedEbooks();
   },
   methods: {
     async fetchAvailableEbooks() {
       try {
-        const response = await fetch('/ebooks');
-        if (!response.ok) throw new Error('Failed to fetch available ebooks.');
+        const response = await fetch(`http://127.0.0.1:5000/ebooks`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch available ebooks.');
+        }
         const data = await response.json();
         this.availableEbooks = data;
       } catch (error) {
+        console.error('Error fetching available ebooks:', error);
         this.error = 'Failed to load ebooks.';
       }
     },
-    async fetchPurchasedEbooks() {
-      try {
-        const response = await fetch('/purchase', {
-          headers: {
-            'Authentication-Token': localStorage.getItem('token'),
-          },
-        });
-        if (!response.ok) throw new Error('Failed to fetch purchased ebooks.');
-        const data = await response.json();
-        this.purchasedEbooks = data.map(p => p.ebook_id);
-      } catch (error) {
-        this.error = 'Failed to load purchased ebooks.';
-      }
-    },
-    async purchaseEbook(ebookId) {
+    async requestEbook(ebookId) {
       try {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No token found');
 
-        const response = await fetch('/purchases', {
+        const response = await fetch('/requests', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -83,41 +68,16 @@ export default {
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to purchase ebook.');
+          throw new Error(errorData.message || 'Failed to request ebook.');
         }
 
-        this.success = 'Ebook purchased successfully!';
-        this.fetchPurchasedEbooks(); // Refresh purchased ebooks list
-        setTimeout(() => { this.success = null; }, 3000);
+        this.success = 'Ebook requested successfully!';
+        setTimeout(() => { this.success = null; }, 3000); // Hide success message after 3 seconds
 
       } catch (error) {
-        this.error = 'Failed to purchase ebook.';
+        console.error('Error requesting ebook:', error);
+        this.error = 'Failed to request ebook.';
       }
-    },
-    async downloadEbook(ebookId) {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No token found');
-
-        const response = await fetch(`/download/${ebookId}?user_id=${this.userId}`, {
-          headers: {
-            'Authentication-Token': token,
-          },
-        });
-
-        if (!response.ok) throw new Error('Failed to download ebook.');
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${ebookId}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      } catch (error) {
-        this.error = 'Failed to download ebook.';
-      }
-    },
-  },
+    }
+  }
 };

@@ -10,6 +10,8 @@ import AdminDashboard from "./components/adminDashboard.js";
 import AdminRequests from './components/AdminRequests.js';
 import UserDashboard from './components/userDashboard.js';
 import SectionBooks from './components/SectionBooks.js'; 
+import PurchaseIssuedEbooks from './components/PurchaseIssuedEbooks.js';
+import UpdateProfile from './components/UpdateProfile.js';
 
 Vue.use(VueRouter);
 
@@ -22,7 +24,9 @@ const routes = [
     { path: '/admin/dashboard', component: AdminDashboard, meta: { requiresAuth: true, role: 'admin' }},
     { path: '/user/dashboard', component: UserDashboard, meta: { requiresAuth: true, role: 'user' }},
     { path: '/admin-requests', component: AdminRequests, meta: { requiresAuth: true, role: 'admin' } },
-    { path: '/section-books/:sectionId', name: 'section-books', component: SectionBooks, meta: { requiresAuth: true, role: 'admin' } }
+    { path: '/section-books/:sectionId', name: 'section-books', component: SectionBooks, meta: { requiresAuth: true, role: 'admin' } },
+    { path: '/purchase-issued-ebooks', component: PurchaseIssuedEbooks },
+    { path: '/update-profile', component: UpdateProfile },
 ];
 
 const router = new VueRouter({

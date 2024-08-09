@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monthly Activity Report</title>
+</head>
+<body>
+    <h1>Monthly Activity Report</h1>
+    <h2>Sections</h2>
+    <ul>
+    {% for section in sections %}
+        <li>{{ section.section_name }} - {{ section.description }}</li>
+    {% endfor %}
+    </ul>
+
+    <h2>Issued Ebooks</h2>
+    <ul>
+    {% for issued in issued_ebooks %}
+        <li>{{ issued.ebook.title }} issued by {{ issued.user.username }} on {{ issued.issue_date }}</li>
+    {% endfor %}
+    </ul>
+
+    <h2>Feedbacks</h2>
+    <ul>
+    {% for feedback in feedbacks %}
+        <li>{{ feedback.ebook.title }} rated {{ feedback.rating }} stars by {{ feedback.user.username }}</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

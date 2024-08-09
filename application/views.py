@@ -8,6 +8,14 @@ from datetime import datetime, timedelta
 from flask_security import current_user
 import pdfkit
 from io import BytesIO
+from flask_mail import Mail, Message
+from .instances import cache
+from celery.result import AsyncResult
+from werkzeug.security import generate_password_hash
+
+
+mail = Mail()
+
 
 pdfkit_config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
 
@@ -45,6 +53,46 @@ def user_login():
 def get_user_id():
     user_id = current_user.id
     return jsonify({"user_id": user_id})
+
+#api for registering and updating user
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({"message": "Email and password are required"}), 400
+
+    if User.query.filter_by(email=email).first():
+        return jsonify({"message": "User already exists"}), 400
+
+    user = User(email=email, password=generate_password_hash(password))
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify({"message": "User registered successfully"}), 201
+
+@app.route('/update', methods=['PUT'])
+def update_user():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+    
+    if email:
+        current_user.email = email
+    if password:
+        current_user.password = generate_password_hash(password)
+    
+    db.session.commit()
+    
+    return jsonify({"message": "User details updated successfully"}), 200
+
+
+
+
+
 
 
 # API for user logout
@@ -199,6 +247,7 @@ def add_ebook_to_section(section_id):
     
 #api fetching ebook details after clicking card  for admin  
 @app.get('/sections/<int:section_id>/ebooks')
+#@cache.cached(timeout=50)
 def get_ebooks_by_section(section_id):
     section = Section.query.get(section_id)
     if not section:
@@ -375,7 +424,8 @@ def get_all_ebooks():
             'author': ebook.author,
             'content': ebook.content,
             'section_id': ebook.section_id,
-            'section_name': ebook.section.section_name
+            'section_name': ebook.section.section_name,
+            'price':ebook.price
         }
         for ebook in ebooks
     ]
@@ -441,6 +491,32 @@ def purchase_ebook():
 
     return jsonify({'message': 'Ebook purchased successfully.'})
 
+@app.route('/purchases', methods=['GET'])
+def get_purchased_ebooks():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({'message': 'User ID is required.'}), 400
+
+    # Fetch purchases for the given user
+    purchases = Purchase.query.filter_by(user_id=user_id).all()
+    if not purchases:
+        return jsonify({'message': 'No purchased e-books found.'}), 404
+
+    # Get the details of each purchased e-book
+    purchased_ebooks = []
+    for purchase in purchases:
+        ebook = Ebook.query.get(purchase.ebook_id)
+        if ebook:
+            purchased_ebooks.append({
+                'ebook_id': ebook.ebook_id,
+                'title': ebook.title,
+                'author': ebook.author,
+                'price': ebook.price
+                
+            })
+
+    return jsonify(purchased_ebooks)
+
 @app.route('/download/<int:ebook_id>', methods=['GET'])
 def download_ebook(ebook_id):
     user_id = request.args.get('user_id')
@@ -455,6 +531,41 @@ def download_ebook(ebook_id):
     # Convert ebook content to PDF
     pdf_content = pdfkit.from_string(ebook.content, False)
     return send_file(BytesIO(pdf_content), as_attachment=True, download_name=f'{ebook.title}.pdf')
+
+
+#for celery tasks
+
+# @app.get('/say-hello')
+# def say_hello_view():
+#     res=say_hello.delay()
+#     return jsonify({"task-id": res.id})
+
+
+
+# @app.route('/send-email')
+# def send_email():
+#     msg = Message('Hello from Flask', sender='21f1003331@ds.study.iitm.ac.in', recipients=['2005521@kiit.ac.in'])
+#     msg.body = 'This is a test email sent from Flask application.'
+#     try:
+#         mail.send(msg)
+#         return 'Email sent!'
+#     except:
+#         return 'Failed to send email.'
+
+
+
+
+@app.route('/get-csv/<task_id>', methods=['GET'])
+def get_csv(task_id):
+    res = AsyncResult(task_id)
+    if res.ready():
+        filename = res.result
+        return send_file(filename, as_attachment=True)
+    else:
+        return jsonify({"message": "Task Pending"}), 202
+
+
+
 
 
 
