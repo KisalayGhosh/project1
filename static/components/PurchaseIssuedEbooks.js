@@ -40,51 +40,63 @@ export default {
       this.fetchIssuedEbooks();
     },
     methods: {
-      async fetchIssuedEbooks() {
-        try {
-          const response = await fetch('/api/issued-books', {
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-
-            },
-          });
-          if (!response.ok) {
-            throw new Error('Failed to fetch issued ebooks.');
-          }
-          const data = await response.json();
-          this.issuedEbooks = data;
-        } catch (error) {
-          console.error('Error fetching issued ebooks:', error);
-          this.error = 'Failed to load issued ebooks.';
-        }
-      },
-      async purchaseEbook(ebookId) {
-        try {
+        fetchIssuedEbooks() {
           const token = localStorage.getItem('token');
-          if (!token) throw new Error('No token found');
-  
-          const response = await fetch('/purchases', {
+          
+          fetch('/api/issued-books', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to fetch issued ebooks.');
+            }
+            return response;
+          })
+          .then(data => {
+            this.issuedEbooks = data;
+            console.log(data)
+          })
+          .catch(error => {
+            console.error('Error fetching issued ebooks:', error);
+            this.error = 'Failed to load issued ebooks.';
+          });
+        },
+        
+        purchaseEbook(ebookId) {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            console.error('No token found');
+            this.error = 'Failed to purchase ebook.';
+            return;
+          }
+      
+          fetch('/purchases', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authentication-Token': token,
+              'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({ ebook_id: ebookId }),
+          })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(errorData => {
+                throw new Error(errorData.message || 'Failed to purchase ebook.');
+              });
+            }
+            return response.json();
+          })
+          .then(() => {
+            this.success = 'Ebook purchased successfully!';
+            setTimeout(() => { this.success = null; }, 3000); // Hide success message after 3 seconds
+          })
+          .catch(error => {
+            console.error('Error purchasing ebook:', error);
+            this.error = 'Failed to purchase ebook.';
           });
-  
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to purchase ebook.');
-          }
-  
-          this.success = 'Ebook purchased successfully!';
-          setTimeout(() => { this.success = null; }, 3000); // Hide success message after 3 seconds
-  
-        } catch (error) {
-          console.error('Error purchasing ebook:', error);
-          this.error = 'Failed to purchase ebook.';
         }
       }
-    }
-  };
-  
+      
+    };
