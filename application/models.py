@@ -97,6 +97,9 @@ class IssuedEbook(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    user = db.relationship('User', backref='issued_books')
+    ebook = db.relationship('Ebook', backref='issued_books')
+    
 class Token(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String(255), unique=True, nullable=False)
