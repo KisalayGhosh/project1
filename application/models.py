@@ -93,9 +93,10 @@ class IssuedEbook(db.Model):
     ebook_id = db.Column(db.Integer, db.ForeignKey('ebook.ebook_id'), nullable=False)
     issue_date = db.Column(db.DateTime, default=datetime.utcnow)
     return_date = db.Column(db.DateTime)
-    status = db.Column(db.String(64), nullable=False)  # Consider if this should be a boolean instead
+    status = db.Column(db.String(64), nullable=False)  
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    purchased = db.Column(db.Boolean, default=False, nullable=True)
 
     user = db.relationship('User', backref='issued_books')
     ebook = db.relationship('Ebook', backref='issued_books')

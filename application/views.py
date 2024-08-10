@@ -74,7 +74,7 @@ def register():
     db.session.commit()
 
     return jsonify({"message": "User registered successfully"}), 201
-
+# for updating user login info
 @app.route('/update', methods=['PUT'])
 def update_user():
     data = request.json
@@ -476,49 +476,7 @@ def generate_pdf_report(html_content):
 
 
 
-@app.route('/purchases', methods=['POST'])
-def purchase_ebook():
-    data = request.get_json()
-    user_id = data.get('user_id')
-    ebook_id = data.get('ebook_id')
 
-    # Check if the user has already purchased the e-book
-    existing_purchase = Purchase.query.filter_by(user_id=user_id, ebook_id=ebook_id).first()
-    if existing_purchase:
-        return jsonify({'message': 'Ebook already purchased.'}), 400
-
-    # Add the purchase to the database
-    purchase = Purchase(user_id=user_id, ebook_id=ebook_id)
-    db.session.add(purchase)
-    db.session.commit()
-
-    return jsonify({'message': 'Ebook purchased successfully.'})
-
-@app.route('/purchases', methods=['GET'])
-def get_purchased_ebooks():
-    user_id = request.args.get('user_id')
-    if not user_id:
-        return jsonify({'message': 'User ID is required.'}), 400
-
-    # Fetch purchases for the given user
-    purchases = Purchase.query.filter_by(user_id=user_id).all()
-    if not purchases:
-        return jsonify({'message': 'No purchased e-books found.'}), 404
-
-    # Get the details of each purchased e-book
-    purchased_ebooks = []
-    for purchase in purchases:
-        ebook = Ebook.query.get(purchase.ebook_id)
-        if ebook:
-            purchased_ebooks.append({
-                'ebook_id': ebook.ebook_id,
-                'title': ebook.title,
-                'author': ebook.author,
-                'price': ebook.price
-                
-            })
-
-    return jsonify(purchased_ebooks)
 
 @app.route('/download/<int:ebook_id>', methods=['GET'])
 def download_ebook(ebook_id):
@@ -566,6 +524,47 @@ def get_csv(task_id):
         return send_file(filename, as_attachment=True)
     else:
         return jsonify({"message": "Task Pending"}), 202
+    
+
+
+
+@app.route('/issued_ebooks', methods=['GET'])
+def get_issued_ebooks():
+    user_id = request.args.get('user_id')
+    issued_ebooks = IssuedEbook.query.filter_by(user_id=user_id).all()
+    result = []
+    for issued_ebook in issued_ebooks:
+        ebook = Ebook.query.get(issued_ebook.ebook_id)
+        result.append({
+            'issue_id': issued_ebook.issue_id,
+            'title': ebook.title,
+            'status': issued_ebook.status,
+            'purchased': issued_ebook.purchased
+        })
+    return jsonify(result)
+
+
+
+@app.route('/purchase/<int:issue_id>', methods=['POST'])
+def purchase_ebook(issue_id):
+    issued_ebook = IssuedEbook.query.get(issue_id)
+    if issued_ebook is None or issued_ebook.purchased:
+        return jsonify({'message': 'E-book already purchased or not found'}), 404
+    
+    ebook_id = issued_ebook.ebook_id
+    user_id = issued_ebook.user_id
+    
+    # Create a purchase record
+    purchase = Purchase(user_id=user_id, ebook_id=ebook_id)
+    db.session.add(purchase)
+    
+    # Update the issued e-book status
+    issued_ebook.purchased = True
+    db.session.commit()
+    
+    return jsonify({'message': 'Purchase successful'})
+
+
 
 
 
