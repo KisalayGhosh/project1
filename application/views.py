@@ -3,7 +3,6 @@ from flask_security import auth_required, roles_required
 from application.models import User, db, Section, Request, Feedback, IssuedEbook,Ebook, Purchase
 from werkzeug.security import check_password_hash
 from application.resources import RequestResource, FeedbackResource, IssuedEbookResource, SectionResource
-from main import datastore
 from datetime import datetime, timedelta
 from flask_security import current_user
 import pdfkit
@@ -32,6 +31,7 @@ def admin():
 # API for user login
 @app.post('/user-login')
 def user_login():
+    from main import datastore
     data = request.get_json()
     email = data.get('email')
     if not email:
@@ -99,6 +99,7 @@ def update_user():
 @app.post('/logout')
 @auth_required("token")
 def logout():
+    from main import datastore
     token = request.headers.get('Authentication-Token')
     if token:
         datastore.delete_token(token)

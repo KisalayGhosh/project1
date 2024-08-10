@@ -16,8 +16,10 @@ class DevelopmentConfig(Config):
     SECURITY_PASSWORD_HASH= 'bcrypt'
 
 
-    CELERY_BROKER_URL = 'redis://localhost:6379/0'
-    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+    CELERY_BROKER_URL = 'redis://localhost:6379/1'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/2'
+    # CELERY_INCLUDE = ['tasks']
+
 
 
 
@@ -25,6 +27,8 @@ class DevelopmentConfig(Config):
     MAIL_PORT = 587
     MAIL_SENDER_EMAIL = '21f1003331@ds.study.iitm.ac.in'
     MAIL_SENDER_PASSWORD = 'kVHrj?Pw8$cs'
+    MAIL_USE_TLS = True
+    MAIL_USE_SSL = False
 
     
     CACHE_TYPE = "RedisCache"

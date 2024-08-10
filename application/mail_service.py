@@ -1,21 +1,23 @@
-import smtplib
+from smtplib import SMTP
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from flask import current_app
+from config import DevelopmentConfig
 
-def send_message(to_email, subject, body):
-    sender_email = current_app.config['MAIL_SENDER_EMAIL']
-    sender_password = current_app.config['MAIL_SENDER_PASSWORD']
-    smtp_server = current_app.config['MAIL_SERVER']
-    smtp_port = current_app.config['MAIL_PORT']
+SMTP_HOST = "localhost"
+SMTP_PORT = 1025
+SENDER_EMAIL = 'narendr@study.iitm.ac.in'
+SENDER_PASSWORD = ''
 
-    msg = MIMEText(body, 'html')
-    msg['Subject'] = subject
-    msg['From'] = sender_email
-    msg['To'] = to_email
+def send_email(to, subject, content_body):
+    msg = MIMEMultipart()
+    msg["To"] = to
+    msg["Subject"] = subject
+    msg["From"] = SENDER_EMAIL
+    msg.attach(MIMEText(content_body, 'html'))
+    client = SMTP(host=SMTP_HOST, port=SMTP_PORT)
+    client.send_message(msg=msg)
+    client.quit()
 
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.send_message(msg)
-
-    return "Email sent successfully"
+def send_alert(message):
+    # Example implementation for sending alerts (you might use a different method)
+    print(message)
