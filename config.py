@@ -31,7 +31,7 @@ class DevelopmentConfig(Config):
     MAIL_USE_SSL = False
 
     
-    CACHE_TYPE = "RedisCache"
+    CACHE_TYPE = "redis"
     CACHE_REDIS_HOST = "localhost"
     CACHE_REDIS_PORT = 6379
     CACHE_REDIS_DB = 3

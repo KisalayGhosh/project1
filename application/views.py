@@ -30,6 +30,7 @@ def admin():
 
 # API for user login
 @app.post('/user-login')
+#@cache.cached(timeout=30, query_string=True)
 def user_login():
     from main import datastore
     data = request.get_json()
@@ -98,6 +99,7 @@ def update_user():
 # API for user logout
 @app.post('/logout')
 @auth_required("token")
+
 def logout():
     from main import datastore
     token = request.headers.get('Authentication-Token')
