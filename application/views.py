@@ -376,6 +376,12 @@ def create_request():
 
     user_id = current_user.id  # Ensure user_id is fetched correctly
 
+    # Check the number of requests the user currently has
+    active_requests_count = Request.query.filter_by(user_id=user_id).filter(Request.status.in_(['pending', 'issued'])).count()
+
+    if active_requests_count >= 5:
+        return jsonify({"error": "You have reached the maximum limit of 5 e-book requests."}), 400
+
     # Create and save the request
     new_request = Request(user_id=user_id, ebook_id=ebook_id, status='pending')
     db.session.add(new_request)
