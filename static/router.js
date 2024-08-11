@@ -26,7 +26,7 @@ const routes = [
     { path: '/admin-requests', component: AdminRequests, meta: { requiresAuth: true, role: 'admin' } },
     { path: '/section-books/:sectionId', name: 'section-books', component: SectionBooks, meta: { requiresAuth: true, role: 'admin' } },
     { path: '/purchase-issued-ebooks', component: PurchaseIssuedEbooks },
-    { path: '/update-profile', component: UpdateProfile },
+    { path: '/update-profile', component: UpdateProfile, meta: { requiresAuth: true, role: 'user' } },
 ];
 
 const router = new VueRouter({
