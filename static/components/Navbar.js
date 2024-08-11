@@ -29,6 +29,9 @@ export default {
             <li class="nav-item" v-if="isUser">
               <router-link class="nav-link" to="/available-ebooks">Available E-books</router-link>
             </li>
+            <li class="nav-item" v-if="isUser">
+              <router-link class="nav-link" to="/update-profile">My Profile</router-link>
+            </li>
             <li class="nav-item" v-if="isAdmin">
               <router-link class="nav-link" to="/admin-requests">Admin Requests</router-link>
             </li>

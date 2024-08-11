@@ -564,6 +564,81 @@ def purchase_ebook(issue_id):
     
     return jsonify({'message': 'Purchase successful'})
 
+@app.put('/sections/<int:section_id>/ebooks/<int:ebook_id>')
+# @auth_required('token')
+def edit_ebook(section_id, ebook_id):
+    data = request.get_json()
+    ebook = Ebook.query.get(ebook_id)
+    
+    if not ebook or ebook.section_id != section_id:
+        return jsonify({"message": "Ebook not found"}), 404
+    
+    ebook.title = data.get('title', ebook.title)
+    ebook.content = data.get('content', ebook.content)
+    ebook.author = data.get('author', ebook.author)
+    ebook.updated_at = datetime.utcnow()
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Ebook updated successfully",
+        "ebook": {
+            'ebook_id': ebook.ebook_id,
+            'title': ebook.title,
+            'content': ebook.content,
+            'author': ebook.author,
+            'section_id': ebook.section_id,
+            'updated_at': ebook.updated_at
+        }
+    }), 200
+
+@app.route('/sections/<int:section_id>/ebooks/<int:ebook_id>', methods=['DELETE'])
+def delete_ebook(section_id, ebook_id):
+    try:
+        issued_ebooks = IssuedEbook.query.filter_by(ebook_id=ebook_id).all()
+        for issued in issued_ebooks:
+            db.session.delete(issued)  # or update the reference to NULL if allowed
+        db.session.commit()
+
+        ebook = Ebook.query.get(ebook_id)
+        db.session.delete(ebook)
+        db.session.commit()
+        return jsonify({"message": "Ebook deleted successfully"}), 200
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": "Could not delete ebook due to integrity constraints"}), 500
+
+@app.route('/api/user', methods=['GET'])
+@auth_required('token')
+def get_user():
+    user_id = current_user.id
+    user = User.query.get(user_id)
+    if user:
+        return jsonify({"email": user.email}), 200
+    return jsonify({"error": "User not found"}), 404
+
+
+@app.route('/api/user', methods=['PUT'])
+@auth_required('token')
+def update_user():
+    user_id = current_user.id
+    data = request.get_json()
+    user = User.query.get(user_id)
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    email = data.get('email')
+    password = data.get('password')
+
+    if email:
+        user.email = email
+    if password:
+        user.password = generate_password_hash(password)
+
+    db.session.commit()
+    return jsonify({"message": "Profile updated successfully", "success": True}), 200
+
 
 
 
