@@ -15,7 +15,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(128), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     active = db.Column(db.Boolean(), default=True)
-    fs_uniquifier = db.Column(db.String(255), unique=True, nullable=False)
+    fs_uniquifier = db.Column(db.String(255), unique=True, nullable=True)
     
     roles = db.relationship('Role', secondary='roles_users',
                             backref=db.backref('users', lazy='dynamic'))
@@ -86,6 +86,9 @@ class Feedback(db.Model):
     rating = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='feedbacks')
+    ebook = db.relationship('Ebook', backref='feedbacks')
 
 class IssuedEbook(db.Model):
     issue_id = db.Column(db.Integer, primary_key=True)

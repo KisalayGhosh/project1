@@ -54,7 +54,8 @@ export default {
             .then(data => {
                 if (data.token) {
                     localStorage.setItem('token', data.token);
-                    localStorage.setItem('role', data.role); 
+                    localStorage.setItem('role', data.role);
+                    localStorage.setItem('user_id',data.user_id) 
                     if (data.role === 'admin') {
                         this.$router.push('/admin/dashboard'); 
                     } else {

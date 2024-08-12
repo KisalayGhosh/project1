@@ -11,6 +11,8 @@ from flask_mail import Mail, Message
 from .instances import cache
 from celery.result import AsyncResult
 from werkzeug.security import generate_password_hash
+from sqlalchemy.exc import IntegrityError
+
 
 
 mail = Mail()
@@ -29,6 +31,7 @@ def admin():
     return "Hello Admin"
 
 # API for user login
+
 @app.post('/user-login')
 #@cache.cached(timeout=30, query_string=True)
 def user_login():
@@ -43,9 +46,10 @@ def user_login():
         return jsonify({"message": "User Not Found"}), 404
 
     if check_password_hash(user.password, data.get("password")):
-        return jsonify({"token": user.get_auth_token(), "email": user.email, "role": user.roles[0].name})
+        return jsonify({"token": user.get_auth_token(), "user_id": user.id, "email": user.email, "role": user.roles[0].name})
     else:
         return jsonify({"message": "Wrong Password"}), 400
+
 
 
 #api for getting user id that is being used in feedback in user dashboard
@@ -62,33 +66,37 @@ def register():
     data = request.json
     email = data.get('email')
     password = data.get('password')
+    username = data.get('username')
+    role = data.get('role')
     
-    if not email or not password:
-        return jsonify({"message": "Email and password are required"}), 400
+    if not email or not password or not username:
+        return jsonify({"message": "Email, password, and username are required"}), 400
 
     if User.query.filter_by(email=email).first():
         return jsonify({"message": "User already exists"}), 400
 
-    user = User(email=email, password=generate_password_hash(password))
+    user = User(username=username, email=email, password=generate_password_hash(password))
     db.session.add(user)
     db.session.commit()
 
     return jsonify({"message": "User registered successfully"}), 201
+
+
 # for updating user login info
-@app.route('/update', methods=['PUT'])
-def update_user():
-    data = request.json
-    email = data.get('email')
-    password = data.get('password')
+# @app.route('/update', methods=['PUT'])
+# def update_user():
+#     data = request.json
+#     email = data.get('email')
+#     password = data.get('password')
     
-    if email:
-        current_user.email = email
-    if password:
-        current_user.password = generate_password_hash(password)
+#     if email:
+#         current_user.email = email
+#     if password:
+#         current_user.password = generate_password_hash(password)
     
-    db.session.commit()
+#     db.session.commit()
     
-    return jsonify({"message": "User details updated successfully"}), 200
+#     return jsonify({"message": "User details updated successfully"}), 200
 
 
 

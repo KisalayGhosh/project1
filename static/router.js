@@ -12,6 +12,7 @@ import UserDashboard from './components/userDashboard.js';
 import SectionBooks from './components/SectionBooks.js'; 
 import PurchaseIssuedEbooks from './components/PurchaseIssuedEbooks.js';
 import UpdateProfile from './components/UpdateProfile.js';
+import Register from './components/Register.js';
 
 Vue.use(VueRouter);
 
@@ -27,6 +28,7 @@ const routes = [
     { path: '/section-books/:sectionId', name: 'section-books', component: SectionBooks, meta: { requiresAuth: true, role: 'admin' } },
     { path: '/purchase-issued-ebooks', component: PurchaseIssuedEbooks },
     { path: '/update-profile', component: UpdateProfile, meta: { requiresAuth: true, role: 'user' } },
+    { path: '/register', component:Register}
 ];
 
 const router = new VueRouter({
