@@ -102,7 +102,7 @@ export default {
         return response.json();
       })
       .then(() => {
-        this.fetchRequests(); // Refresh data after revoking
+        this.fetchRequests(); 
       })
       .catch(error => {
         console.error('Error revoking request:', error);

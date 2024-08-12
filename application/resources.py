@@ -277,7 +277,7 @@ api.add_resource(IssuedEbookResource, '/issued_ebooks/<int:issued_ebook_id>', '/
 # Example of CustomSQLAlchemyUserDatastore in resources.py
 class CustomSQLAlchemyUserDatastore(SQLAlchemyUserDatastore):
     def delete_token(self, token):
-        # Implement your logic here to delete or invalidate the token
+        
         token_obj = Token.query.filter_by(token=token).first()
         if token_obj:
             token_obj.revoke()  # Example: mark token as revoked

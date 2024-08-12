@@ -102,7 +102,7 @@ export default {
         title: '',
         content: '',
         author: '',
-        price: 0.0  // Added price field
+        price: 0.0  
       },
       showAddEbookFormFlag: false,
       currentSection: {
@@ -145,7 +145,7 @@ export default {
         title: '',
         content: '',
         author: '',
-        price: null  // Reset price field
+        price: null  
       };
       new bootstrap.Modal(document.getElementById('addEbookModal')).show();
     },
@@ -201,7 +201,7 @@ export default {
           throw new Error('Failed to update section.');
         }
     
-        // Handle successful update
+        
         const updatedSection = await response.json();
         console.log('Section updated:', updatedSection);
         this.fetchSections();
@@ -213,7 +213,7 @@ export default {
     
     async deleteSection(sectionId) {
       try {
-        console.log("Deleting Section ID:", sectionId); // Debug log
+        console.log("Deleting Section ID:", sectionId); 
         const token = localStorage.getItem('auth_token');
         const response = await fetch(`/sections/${sectionId}`, {
           method: 'DELETE',

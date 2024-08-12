@@ -20,7 +20,7 @@ class User(db.Model, UserMixin):
     roles = db.relationship('Role', secondary='roles_users',
                             backref=db.backref('users', lazy='dynamic'))
 
-    # Define a relationship with Ebook
+    
     ebook_resource = db.relationship('Ebook', backref='user', lazy='dynamic')
     requests = db.relationship('Request', back_populates='user', lazy='dynamic')
     purchases = db.relationship('Purchase', backref='user', lazy=True)
@@ -56,7 +56,7 @@ class Section(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Define the foreign key relationship with Ebook
+    
     ebooks = db.relationship('Ebook', backref='section', lazy='dynamic')
 
 class Request(db.Model):
@@ -66,7 +66,7 @@ class Request(db.Model):
     request_date = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='pending')
 
-    # Relationships
+    
     user = db.relationship('User', back_populates='requests')
     ebook = db.relationship('Ebook', back_populates='requests')
 

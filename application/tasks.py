@@ -26,16 +26,16 @@ def send_email(to, subject, content_body):
     smtp_port = 1025
     sender_email = '21f1003331@ds.study.iitm.ac.in'
 
-    # Create a multipart message and set headers
+    
     msg = MIMEMultipart()
     msg['From'] = sender_email
     msg['To'] = to
     msg['Subject'] = subject
 
-    # Add body to email
+    
     msg.attach(MIMEText(content_body, 'html'))
 
-    # Send the email
+   
     with SMTP(smtp_host, smtp_port) as server:
         server.sendmail(sender_email, to, msg.as_string())
 
@@ -46,7 +46,7 @@ def send_email(to, subject, content_body):
 @celery.task
 def send_monthly_report():
     sections = Section.query.all()
-    issued_ebooks = IssuedEbook.query.all()  # Use IssuedEbook model to get issued ebooks
+    issued_ebooks = IssuedEbook.query.all()  
     feedbacks = Feedback.query.all()
     
     html_content = render_template(
@@ -66,7 +66,7 @@ def send_monthly_report():
 def export_csv_report():
     ebooks = Ebook.query.all()
     csv_file = os.path.join('exports', 'issued_ebooks_report.csv')
-    os.makedirs(os.path.dirname(csv_file), exist_ok=True)  # Ensure the directory exists
+    os.makedirs(os.path.dirname(csv_file), exist_ok=True)  
     with open(csv_file, 'w', newline='') as csvfile:
         fieldnames = ['Title', 'Content', 'Author', 'Date Issued', 'Return Date']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
